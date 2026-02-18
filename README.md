@@ -1,4 +1,4 @@
-# RIAWELC-RS - Welding Defect Classification & Segmentation Pipeline
+# RIAWELC-RS: Welding Radiograph Classification & Weakly-Supervised Segmentation
 
 Classification and weakly-supervised segmentation of welding radiographs using transfer learning, Grad-CAM localization, and a simple FastAPI backend with edge model export.
 
@@ -55,7 +55,7 @@ Several papers report classification results on RIAWELC using the original split
 
 None of these papers report investigating or addressing the duplicate issue. For comparison, the EfficientNetB0 classifier in this project achieves **81.86%** on the leakage-free RIAWELC-RS test split (see [Results](#results) below).
 
-> **Note:** We do not suggest that the above results are without merit in other respects — architectural contributions, augmentation strategies, and transfer learning methods may well be valuable. However, the headline accuracy figures on RIAWELC cannot be taken at face value given that the evaluation data is contained in the training data.
+> **Note:** We do not suggest that the above results are without merit in other respects; architectural contributions, augmentation strategies, and transfer learning methods may well be valuable. However, the headline accuracy figures on RIAWELC cannot be taken at face value given that the evaluation data is contained in the training data.
 
 ### RIAWELC-RS: The Fix
 
@@ -110,7 +110,7 @@ All metrics evaluated on the held-out test split (6 radiographs, 2,729 patches) 
 
 ### Segmentation (U-Net, EfficientNetB0 encoder)
 
-Evaluated on the 3 defect classes only (`no_defect` excluded — no spatial defect to segment).
+Evaluated on the 3 defect classes only (`no_defect` excluded, since there is no spatial defect to segment).
 
 | Class | IoU | Dice | Samples |
 |-------|-----|------|---------|
@@ -240,7 +240,7 @@ Outputs: `outputs/exported/model.onnx`
 ## Vertex AI (Cloud Training)
 
 Train on GPU-equipped VMs in Google Cloud. The training script runs identically
-locally and on Vertex AI — only the `--tracking` and path flags change.
+locally and on Vertex AI. Only the `--tracking` and path flags change.
 
 ### Setup
 

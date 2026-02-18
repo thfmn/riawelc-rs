@@ -44,19 +44,22 @@ import argparse
 import json
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+import yaml
 
 # =============================================================================
 # Constants
 # =============================================================================
 
-PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "riawelc-weld-class-seg")
+PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "your-gcp-project-id")
 REGION = os.environ.get("GCP_REGION", "europe-west3")
 DEFAULT_SERVICE_ACCOUNT = os.environ.get(
-    "GCP_SERVICE_ACCOUNT", "933334195095-compute@developer.gserviceaccount.com"
+    "GCP_SERVICE_ACCOUNT", "YOUR_PROJECT_NUMBER-compute@developer.gserviceaccount.com"
 )
 
-DATA_BUCKET = os.environ.get("RIAWELC_DATA_BUCKET", "riawelc-data-europe-west3")
-ARTIFACTS_BUCKET = os.environ.get("RIAWELC_ARTIFACTS_BUCKET", "riawelc-artifacts-europe-west3")
+DATA_BUCKET = os.environ.get("RIAWELC_DATA_BUCKET", "your-data-bucket")
+ARTIFACTS_BUCKET = os.environ.get("RIAWELC_ARTIFACTS_BUCKET", "your-artifacts-bucket")
 STAGING_BUCKET = f"gs://{ARTIFACTS_BUCKET}/staging"
 
 # Container image in Artifact Registry (built by cloudbuild.yaml)
@@ -361,8 +364,10 @@ Examples:
     parser.add_argument(
         "--mask-dir",
         type=str,
-        default=GCS_MASK_DIR,
-        help=f"GCS pseudo-mask path via /gcs/ mount (default: {GCS_MASK_DIR}).",
+        default=None,
+        help="GCS pseudo-mask path via /gcs/ mount. "
+        "If omitted, reads segmentation.mask_dir from the config YAML "
+        f"and maps it under /gcs/{ARTIFACTS_BUCKET}/.",
     )
     parser.add_argument(
         "--checkpoint-dir",
@@ -416,12 +421,35 @@ Examples:
     return parser.parse_args()
 
 
+def _resolve_mask_dir(config_path: str, cli_mask_dir: str | None) -> str:
+    """Resolve the GCS mask directory from CLI override or config YAML.
+
+    Priority: CLI ``--mask-dir`` > config ``segmentation.mask_dir`` > default.
+    Local relative paths (e.g. ``outputs/pseudomasks_v2``) are mapped to the
+    GCS FUSE mount under ``/gcs/{ARTIFACTS_BUCKET}/``.
+    """
+    if cli_mask_dir is not None:
+        return cli_mask_dir
+
+    local_mask_dir = "outputs/pseudomasks"
+    config_file = Path(config_path)
+    if config_file.exists():
+        with open(config_file) as f:
+            raw = yaml.safe_load(f) or {}
+        local_mask_dir = raw.get("segmentation", {}).get("mask_dir", local_mask_dir)
+
+    return f"/gcs/{ARTIFACTS_BUCKET}/{local_mask_dir}"
+
+
 def main() -> None:
     args = parse_args()
     use_spot = not args.no_spot
     vm_label = "Spot" if use_spot else "On-Demand"
     machine_configs = _build_machine_configs(spot=use_spot)
     machine_config = machine_configs[args.machine_type]
+
+    # Resolve mask dir from config if not overridden on CLI
+    args.mask_dir = _resolve_mask_dir(args.config, args.mask_dir)
 
     # ── Print job summary ──
     print("=" * 60)

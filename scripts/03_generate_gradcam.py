@@ -29,6 +29,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import yaml
+from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -75,8 +76,10 @@ def main() -> None:
 
     overlay_dir = args.output_dir / "overlays"
     heatmap_dir = args.output_dir / "heatmaps"
+    raw_heatmap_dir = args.output_dir / "heatmaps_raw"
     overlay_dir.mkdir(parents=True, exist_ok=True)
     heatmap_dir.mkdir(parents=True, exist_ok=True)
+    raw_heatmap_dir.mkdir(parents=True, exist_ok=True)
 
     alpha = gc_config.get("output", {}).get("alpha", 0.4)
     total_generated = 0
@@ -94,6 +97,7 @@ def main() -> None:
 
         (overlay_dir / class_name).mkdir(parents=True, exist_ok=True)
         (heatmap_dir / class_name).mkdir(parents=True, exist_ok=True)
+        (raw_heatmap_dir / class_name).mkdir(parents=True, exist_ok=True)
 
         for img_path in image_paths:
             img = tf.keras.utils.load_img(str(img_path), color_mode="grayscale")
@@ -121,6 +125,10 @@ def main() -> None:
             plt.close(fig)
 
             plt.imsave(str(heatmap_dir / class_name / img_path.name), heatmap, cmap="jet")
+
+            raw_path = raw_heatmap_dir / class_name / img_path.name
+            Image.fromarray((heatmap * 255).astype(np.uint8), mode="L").save(raw_path)
+
             total_generated += 1
 
     print(f"\nDone. Generated {total_generated} heatmaps in {args.output_dir}")

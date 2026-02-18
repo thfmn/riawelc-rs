@@ -56,7 +56,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("outputs/evaluation/segmentation"),
+        default=None,
+        help="Output directory (default: derived from model path).",
     )
     parser.add_argument(
         "--num-visualize",
@@ -127,8 +128,22 @@ def select_diverse_samples(
     return unique[:num_samples]
 
 
+def _resolve_output_dir(args: argparse.Namespace) -> Path:
+    """Derive output directory from model path if not explicitly set.
+
+    E.g. ``...checkpoints/unet_efficientnetb0/v1/best.keras``
+    → ``outputs/evaluation/segmentation/unet_efficientnetb0``
+    """
+    if args.output_dir is not None:
+        return args.output_dir
+    # Walk up from best.keras → v1 → model_name
+    model_name = args.model_path.parent.parent.name
+    return Path("outputs/evaluation/segmentation") / model_name
+
+
 def main() -> None:
     args = parse_args()
+    args.output_dir = _resolve_output_dir(args)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading model from {args.model_path}")

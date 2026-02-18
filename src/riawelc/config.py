@@ -70,6 +70,7 @@ class DataConfig:
     val_dir: str = "Dataset_partitioned/validation"
     test_dir: str = "Dataset_partitioned/testing"
     augmentation: bool = True
+    augmentation_mode: str = "full"
 
 
 @dataclass

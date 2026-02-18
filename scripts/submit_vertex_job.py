@@ -41,13 +41,13 @@ Usage:
     # Fine-tune from a Phase 1 checkpoint (FUSE path)
     python scripts/submit_vertex_job.py --model efficientnetb0 \\
         --config configs/efficientnetb0_ht_1.yaml \\
-        --resume-from /gcs/riawelc-artifacts-europe-west3/outputs/\\
+        --resume-from /gcs/YOUR_ARTIFACTS_BUCKET/outputs/\\
     checkpoints/efficientnetb0/v1/feature_extraction/best.keras --yes
 
     # Fine-tune from a gs:// URL (auto-converted to /gcs/ FUSE path)
     python scripts/submit_vertex_job.py --model efficientnetb0 \\
         --config configs/efficientnetb0_ht_1.yaml \\
-        --resume-from gs://riawelc-artifacts-europe-west3/outputs/\\
+        --resume-from gs://YOUR_ARTIFACTS_BUCKET/outputs/\\
     checkpoints/efficientnetb0/v1/feature_extraction/best.keras --yes
 """
 
@@ -62,14 +62,14 @@ from dataclasses import dataclass
 # Constants
 # =============================================================================
 
-PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "riawelc-weld-class-seg")
+PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "your-gcp-project-id")
 REGION = os.environ.get("GCP_REGION", "europe-west3")
 DEFAULT_SERVICE_ACCOUNT = os.environ.get(
-    "GCP_SERVICE_ACCOUNT", "933334195095-compute@developer.gserviceaccount.com"
+    "GCP_SERVICE_ACCOUNT", "YOUR_PROJECT_NUMBER-compute@developer.gserviceaccount.com"
 )
 
-DATA_BUCKET = os.environ.get("RIAWELC_DATA_BUCKET", "riawelc-data-europe-west3")
-ARTIFACTS_BUCKET = os.environ.get("RIAWELC_ARTIFACTS_BUCKET", "riawelc-artifacts-europe-west3")
+DATA_BUCKET = os.environ.get("RIAWELC_DATA_BUCKET", "your-data-bucket")
+ARTIFACTS_BUCKET = os.environ.get("RIAWELC_ARTIFACTS_BUCKET", "your-artifacts-bucket")
 STAGING_BUCKET = f"gs://{ARTIFACTS_BUCKET}/staging"
 
 # Container image in Artifact Registry (built by cloudbuild.yaml)
@@ -376,7 +376,7 @@ Examples:
   # Fine-tune from a Phase 1 checkpoint
   python scripts/submit_vertex_job.py --model efficientnetb0 \\
       --config configs/efficientnetb0_ht_1.yaml \\
-      --resume-from gs://riawelc-artifacts-europe-west3/outputs/\\
+      --resume-from gs://YOUR_ARTIFACTS_BUCKET/outputs/\\
   checkpoints/efficientnetb0/v1/feature_extraction/best.keras --yes
 """,
     )

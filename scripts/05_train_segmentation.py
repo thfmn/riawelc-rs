@@ -18,8 +18,8 @@ Usage:
     python scripts/05_train_segmentation.py --config configs/segmentation_unet.yaml
     python scripts/05_train_segmentation.py --config configs/segmentation_unet.yaml --dry-run
     python scripts/05_train_segmentation.py --config configs/segmentation_unet.yaml \\
-        --data-dir /gcs/riawelc-data-europe-west3 \\
-        --mask-dir /gcs/riawelc-artifacts-europe-west3/outputs/pseudomasks \\
+        --data-dir /gcs/$GCS_DATA_BUCKET \\
+        --mask-dir /gcs/$GCS_ARTIFACTS_BUCKET/outputs/pseudomasks \\
         --tracking vertex
 """
 
@@ -30,6 +30,7 @@ import sys
 from pathlib import Path
 
 import tensorflow as tf
+import yaml
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -105,6 +106,7 @@ def load_segmentation_data(
     input_shape: tuple[int, int],
     batch_size: int,
     augment: bool = False,
+    augmentation_mode: str = "full",
 ) -> tf.data.Dataset:
     """Load image-mask pairs for segmentation training."""
     image_paths = []
@@ -149,8 +151,9 @@ def load_segmentation_data(
     ds = ds.shuffle(len(image_paths), seed=9)
     ds = ds.map(load_pair, num_parallel_calls=tf.data.AUTOTUNE)
     if augment:
+        aug_mode = augmentation_mode
         ds = ds.map(
-            lambda img, msk: augment_segmentation_pair(img, msk),
+            lambda img, msk: augment_segmentation_pair(img, msk, mode=aug_mode),
             num_parallel_calls=tf.data.AUTOTUNE,
         )
     ds = ds.batch(batch_size)
@@ -192,12 +195,17 @@ def main() -> None:
         print("\n[DRY RUN] Skipping training.")
         return
 
-    mask_dir = args.mask_dir if args.mask_dir is not None else Path("outputs/pseudomasks")
+    if args.mask_dir is not None:
+        mask_dir = args.mask_dir
+    else:
+        raw = yaml.safe_load(open(args.config))
+        mask_dir = Path(raw.get("segmentation", {}).get("mask_dir", "outputs/pseudomasks"))
     image_dir = Path(config.data.train_dir)
 
     train_ds = load_segmentation_data(
         image_dir, mask_dir, input_shape, config.batch_size,
         augment=config.data.augmentation,
+        augmentation_mode=config.data.augmentation_mode,
     )
 
     val_image_dir = Path(config.data.val_dir)
@@ -212,7 +220,12 @@ def main() -> None:
         metrics=[dice_coefficient],
     )
 
-    callbacks = build_callbacks(config, tracking=args.tracking)
+    callbacks = build_callbacks(
+        config,
+        tracking=args.tracking,
+        config_file=args.config,
+        extra_tags={"mask_dir": str(mask_dir)},
+    )
     model.fit(
         train_ds,
         validation_data=val_ds,

@@ -3,7 +3,7 @@
 #     --substitutions=_REGION=us-central1,_PROJECT_ID=my-project
 substitutions:
   _REGION: "europe-west3"
-  _PROJECT_ID: "riawelc-weld-class-seg"
+  _PROJECT_ID: "your-gcp-project-id"
   _REPO: "training"
   _IMAGE: "riawelc-training"
 

@@ -31,11 +31,12 @@ from PIL import Image
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate pseudo-masks from Grad-CAM heatmaps.")
-    parser.add_argument("--heatmap-dir", type=Path, default=Path("outputs/gradcam/heatmaps"))
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/pseudomasks"))
+    parser.add_argument("--heatmap-dir", type=Path, default=Path("outputs/gradcam/heatmaps_raw"))
+    parser.add_argument("--output-dir", type=Path, default=Path("outputs/pseudomasks_v2"))
     parser.add_argument("--threshold", type=float, default=0.5, help="Binarization threshold (0-1).")
     parser.add_argument("--kernel-size", type=int, default=5, help="Morphological kernel size.")
     parser.add_argument("--min-area", type=int, default=100, help="Minimum connected component area in pixels.")
+    parser.add_argument("--fill-holes", action=argparse.BooleanOptionalAction, default=True, help="Fill holes in binary masks.")
     return parser.parse_args()
 
 
@@ -44,6 +45,7 @@ def create_pseudomask(
     threshold: float,
     kernel_size: int,
     min_area: int,
+    fill_holes: bool = False,
 ) -> np.ndarray:
     """Convert a heatmap image to a binary pseudo-mask."""
     heatmap_img = np.array(Image.open(heatmap_path).convert("L"))
@@ -54,6 +56,18 @@ def create_pseudomask(
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
     binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
     binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
+
+    if fill_holes:
+        # Pad with a 1-pixel background border so (0,0) is guaranteed to be
+        # background, even when the foreground touches the image edge.
+        h, w = binary.shape
+        padded = np.zeros((h + 2, w + 2), dtype=np.uint8)
+        padded[1:-1, 1:-1] = binary
+        flood_mask = np.zeros((h + 4, w + 4), np.uint8)
+        cv2.floodFill(padded, flood_mask, (0, 0), 1)
+        # After flood: exterior background → 1, foreground → 1, holes → 0
+        holes = (padded[1:-1, 1:-1] == 0).astype(np.uint8)
+        binary = binary | holes
 
     num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
     mask = np.zeros_like(binary)
@@ -76,7 +90,7 @@ def main() -> None:
         out_class_dir.mkdir(parents=True, exist_ok=True)
 
         for heatmap_path in sorted(class_dir.glob("*.png")):
-            mask = create_pseudomask(heatmap_path, args.threshold, args.kernel_size, args.min_area)
+            mask = create_pseudomask(heatmap_path, args.threshold, args.kernel_size, args.min_area, args.fill_holes)
             Image.fromarray(mask).save(out_class_dir / heatmap_path.name)
             total += 1
 

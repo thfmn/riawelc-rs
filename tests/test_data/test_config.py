@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from riawelc.config import FineTuneConfig, TrainingConfig
+from riawelc.config import DataConfig, FineTuneConfig, TrainingConfig
 
 
 class TestTrainingConfig:
@@ -101,3 +101,43 @@ model:
         config = TrainingConfig.from_yaml(tmp_config_yaml)
         assert config.has_fine_tune_phase is False
         assert config.fine_tune.epochs == 0
+
+
+class TestDataConfig:
+    def test_augmentation_mode_default(self) -> None:
+        """Omitting augmentation_mode should default to 'full'."""
+        dc = DataConfig()
+        assert dc.augmentation_mode == "full"
+
+    def test_augmentation_mode_spatial(self) -> None:
+        """augmentation_mode can be set to 'spatial'."""
+        dc = DataConfig(augmentation_mode="spatial")
+        assert dc.augmentation_mode == "spatial"
+
+    def test_augmentation_mode_from_yaml(self, tmp_path: Path) -> None:
+        """augmentation_mode should load from YAML config."""
+        yaml_path = tmp_path / "aug_mode_config.yaml"
+        yaml_path.write_text(
+            """\
+model_version: "v1"
+batch_size: 16
+epochs: 50
+seed: 9
+
+data:
+  augmentation: true
+  augmentation_mode: spatial
+
+model:
+  name: test
+  input_shape: [224, 224, 1]
+  num_classes: 1
+"""
+        )
+        config = TrainingConfig.from_yaml(yaml_path)
+        assert config.data.augmentation_mode == "spatial"
+
+    def test_augmentation_mode_backward_compat(self, tmp_config_yaml: Path) -> None:
+        """Configs without augmentation_mode should default to 'full'."""
+        config = TrainingConfig.from_yaml(tmp_config_yaml)
+        assert config.data.augmentation_mode == "full"

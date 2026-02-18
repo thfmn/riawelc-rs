@@ -12,7 +12,7 @@
 
 set -euo pipefail
 
-BUCKET="${GCS_ARTIFACTS_BUCKET:-riawelc-artifacts-europe-west3}"
+BUCKET="${GCS_ARTIFACTS_BUCKET:?Set GCS_ARTIFACTS_BUCKET in .env}"
 LOCAL_DIR="mlruns"
 GCS_DIR="gs://${BUCKET}/mlruns"
 

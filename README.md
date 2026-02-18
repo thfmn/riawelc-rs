@@ -266,7 +266,7 @@ python scripts/submit_vertex_job.py --model efficientnetb0 --yes
 # Fine-tune from a checkpoint with a custom config
 python scripts/submit_vertex_job.py --model efficientnetb0 \
     --config configs/efficientnetb0_ht_1.yaml \
-    --resume-from gs://riawelc-artifacts-europe-west3/outputs/checkpoints/efficientnetb0/v1/feature_extraction/best.keras \
+    --resume-from gs://$GCS_ARTIFACTS_BUCKET/outputs/checkpoints/efficientnetb0/v1/feature_extraction/best.keras \
     --yes
 
 # CPU-only smoke test
@@ -379,9 +379,9 @@ python scripts/01_train_classifier.py \
     --model efficientnetb0 \
     --config configs/efficientnetb0_baseline.yaml \
     --tracking both \
-    --data-dir /gcs/riawelc-data-europe-west3 \
-    --checkpoint-dir /gcs/riawelc-artifacts-europe-west3/outputs/checkpoints \
-    --mlflow-uri /gcs/riawelc-artifacts-europe-west3/mlruns
+    --data-dir /gcs/$GCS_DATA_BUCKET \
+    --checkpoint-dir /gcs/$GCS_ARTIFACTS_BUCKET/outputs/checkpoints \
+    --mlflow-uri /gcs/$GCS_ARTIFACTS_BUCKET/mlruns
 ```
 
 ## Tech Stack

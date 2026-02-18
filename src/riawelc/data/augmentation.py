@@ -61,13 +61,13 @@ def build_augmentation_pipeline(config: TrainingConfig) -> keras.Model:
 
 
 def augment_segmentation_pair(
-    image: tf.Tensor, mask: tf.Tensor, seed: int = 9
+    image: tf.Tensor, mask: tf.Tensor, seed: int = 9, mode: str = "full"
 ) -> tuple[tf.Tensor, tf.Tensor]:
     """Apply random augmentation to an image-mask pair for segmentation.
 
     Spatial transforms (flip, rotation) are applied identically to both
     image and mask using shared seeds.  Intensity transforms (brightness,
-    contrast) are applied to the image only.
+    contrast) are applied to the image only when ``mode="full"``.
 
     Parameters
     ----------
@@ -77,6 +77,9 @@ def augment_segmentation_pair(
         Float32 binary mask tensor with shape (H, W, 1), values in [0, 1].
     seed : int
         Base seed used to derive per-call random seeds.
+    mode : str
+        ``"full"`` applies spatial + intensity transforms (default).
+        ``"spatial"`` applies only spatial transforms.
     """
     # Draw fresh seeds from the module-level RNG so each mapped sample
     # receives a different random augmentation.
@@ -102,10 +105,11 @@ def augment_segmentation_pair(
     image = _rotate_fill(image, angle_rad, fill_value=0.0)
     mask = _rotate_fill(mask, angle_rad, fill_value=0.0)
 
-    # --- Intensity transforms (image ONLY) ---
+    # --- Intensity transforms (image ONLY, skipped in spatial mode) ---
 
-    image = tf.image.stateless_random_brightness(image, max_delta=0.1, seed=seed_bright)
-    image = tf.image.stateless_random_contrast(image, lower=0.9, upper=1.1, seed=seed_contrast)
+    if mode == "full":
+        image = tf.image.stateless_random_brightness(image, max_delta=0.1, seed=seed_bright)
+        image = tf.image.stateless_random_contrast(image, lower=0.9, upper=1.1, seed=seed_contrast)
 
     return image, mask
 

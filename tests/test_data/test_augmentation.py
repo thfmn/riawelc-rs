@@ -156,3 +156,60 @@ class TestAugmentSegmentationPair:
             out_mask.numpy(),
             np.zeros((224, 224, 1), dtype=np.float32),
         )
+
+    def test_spatial_mode_preserves_pixel_mean(self) -> None:
+        """Spatial-only mode should not shift image brightness/contrast.
+
+        The pixel mean should be preserved (within tolerance for interpolation
+        at rotation boundaries) since no intensity transforms are applied.
+        """
+        rng = np.random.default_rng(99)
+        arr = rng.uniform(50, 200, size=(224, 224, 1)).astype(np.float32)
+        image = tf.constant(arr)
+        mask = tf.constant(np.zeros((224, 224, 1), dtype=np.float32))
+
+        original_mean = float(tf.reduce_mean(image))
+
+        aug_module._seg_aug_rng = tf.random.Generator.from_seed(42)
+        aug_img, _ = augment_segmentation_pair(image, mask, mode="spatial")
+
+        spatial_mean = float(tf.reduce_mean(aug_img))
+        # Spatial transforms only rearrange pixels; mean should stay close.
+        # Rotation fills borders with 0, which can lower the mean slightly.
+        assert abs(spatial_mean - original_mean) < 15.0
+
+    def test_spatial_mode_skips_intensity(self) -> None:
+        """In spatial mode, a uniform image should remain uniform after augmentation.
+
+        With a uniform image, spatial transforms (flip, rotation) produce the
+        same pixel values everywhere in the interior. At rotation borders,
+        bilinear interpolation creates intermediate values, so we check the
+        centre crop only.
+        """
+        uniform_img = tf.constant(np.full((224, 224, 1), 128.0, dtype=np.float32))
+        zero_mask = tf.constant(np.zeros((224, 224, 1), dtype=np.float32))
+
+        aug_module._seg_aug_rng = tf.random.Generator.from_seed(7)
+        aug_img, _ = augment_segmentation_pair(uniform_img, zero_mask, mode="spatial")
+
+        # Check interior pixels (centre 60%) — avoids rotation border artefacts
+        m = 45  # margin
+        interior = aug_img[m:-m, m:-m, :]
+        np.testing.assert_allclose(interior.numpy(), 128.0, atol=1e-5)
+
+    def test_full_mode_may_shift_intensity(self) -> None:
+        """Full mode can shift pixel values via brightness/contrast transforms."""
+        uniform_img = tf.constant(np.full((224, 224, 1), 128.0, dtype=np.float32))
+        zero_mask = tf.constant(np.zeros((224, 224, 1), dtype=np.float32))
+
+        # Run multiple times to catch at least one non-identity intensity draw
+        shifted = False
+        for seed_val in range(10):
+            aug_module._seg_aug_rng = tf.random.Generator.from_seed(seed_val)
+            aug_img, _ = augment_segmentation_pair(uniform_img, zero_mask, mode="full")
+            nonzero = aug_img[aug_img > 0]
+            if not np.allclose(nonzero.numpy(), 128.0, atol=1e-5):
+                shifted = True
+                break
+
+        assert shifted, "Expected at least one seed to produce intensity shift in full mode"

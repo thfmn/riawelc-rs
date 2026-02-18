@@ -47,7 +47,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", type=str, default=None, help="Model name (resolves checkpoint path).")
     parser.add_argument("--model-path", type=Path, default=None, help="Direct path to model checkpoint.")
     parser.add_argument("--config", type=str, required=True, help="Path to training config YAML.")
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/evaluation"), help="Output directory.")
+    parser.add_argument(
+        "--output-dir", type=Path, default=None,
+        help="Output directory (default: derived from model name/path).",
+    )
     return parser.parse_args()
 
 
@@ -60,6 +63,18 @@ def resolve_model_path(args: argparse.Namespace, config: TrainingConfig) -> Path
     sys.exit(1)
 
 
+def _resolve_output_dir(args: argparse.Namespace, model_path: Path) -> Path:
+    """Derive output directory from model path if not explicitly set.
+
+    E.g. ``...checkpoints/efficientnetb0/v1/best.keras``
+    → ``outputs/evaluation/efficientnetb0``
+    """
+    if args.output_dir is not None:
+        return args.output_dir
+    model_name = model_path.parent.parent.name
+    return Path("outputs/evaluation") / model_name
+
+
 def main() -> None:
     args = parse_args()
     config = TrainingConfig.from_yaml(args.config)
@@ -68,6 +83,8 @@ def main() -> None:
     if not model_path.exists():
         print(f"ERROR: Model not found at {model_path}")
         sys.exit(1)
+
+    args.output_dir = _resolve_output_dir(args, model_path)
 
     print(f"Loading model from {model_path}")
     model = tf.keras.models.load_model(str(model_path))

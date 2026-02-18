@@ -10,8 +10,8 @@
 
 set -euo pipefail
 
-DATA_BUCKET="${RIAWELC_DATA_BUCKET:-riawelc-data-europe-west3}"
-ARTIFACTS_BUCKET="${RIAWELC_ARTIFACTS_BUCKET:-riawelc-artifacts-europe-west3}"
+DATA_BUCKET="${RIAWELC_DATA_BUCKET:?Set RIAWELC_DATA_BUCKET in .env}"
+ARTIFACTS_BUCKET="${RIAWELC_ARTIFACTS_BUCKET:?Set RIAWELC_ARTIFACTS_BUCKET in .env}"
 LOCAL_DATA="Dataset_partitioned"
 LOCAL_CHECKPOINTS="outputs/models/checkpoints"
 LOCAL_PSEUDOMASKS="outputs/pseudomasks"

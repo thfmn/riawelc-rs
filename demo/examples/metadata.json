@@ -1,0 +1,69 @@
+{
+  "crack.png": {
+    "label": "Crack",
+    "source": "Dataset_partitioned/testing/crack/RRT-90R_Img1_A80_S5_[3][37].png",
+    "confidence": 1.0,
+    "probabilities": {
+      "crack": 1.0,
+      "lack_of_penetration": 0.0,
+      "no_defect": 0.0,
+      "porosity": 0.0
+    },
+    "iou": 0.7003,
+    "dice": 0.7645
+  },
+  "lack_of_penetration.png": {
+    "label": "Lack of Penetration",
+    "source": "Dataset_partitioned/testing/lack_of_penetration/RRT-22R_Img1_A80_S2_[2][10].png",
+    "confidence": 0.999,
+    "probabilities": {
+      "crack": 0.0009,
+      "lack_of_penetration": 0.999,
+      "no_defect": 0.0,
+      "porosity": 0.0001
+    },
+    "iou": 0.7117,
+    "dice": 0.7483
+  },
+  "no_defect.png": {
+    "label": "No Defect",
+    "source": "Dataset_partitioned/testing/no_defect/RRT-42R_Img1_A80_S1_[13][12].png",
+    "confidence": 1.0,
+    "probabilities": {
+      "crack": 0.0,
+      "lack_of_penetration": 0.0,
+      "no_defect": 1.0,
+      "porosity": 0.0
+    },
+    "iou": null,
+    "dice": null
+  },
+  "porosity.png": {
+    "label": "Porosity",
+    "source": "Dataset_partitioned/testing/porosity/RRT-22R_Img2_A80_S4_[1][18].png",
+    "confidence": 1.0,
+    "probabilities": {
+      "crack": 0.0,
+      "lack_of_penetration": 0.0,
+      "no_defect": 0.0,
+      "porosity": 1.0
+    },
+    "iou": 0.806,
+    "dice": 0.8143
+  },
+  "borderline_crack_vs_lp.png": {
+    "label": "Borderline: Crack vs Lack of Penetration",
+    "source": "Dataset_partitioned/testing/crack/RRT-42R_Img2_A80_S2_[3][9].png",
+    "true_class": "crack",
+    "confidence": 0.5051,
+    "runner_up_class": "lack_of_penetration",
+    "runner_up_prob": 0.4948,
+    "gap": 0.0104,
+    "probabilities": {
+      "crack": 0.5051,
+      "lack_of_penetration": 0.4948,
+      "no_defect": 0.0,
+      "porosity": 0.0001
+    }
+  }
+}

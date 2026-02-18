@@ -70,8 +70,31 @@ scratch/
 # AI
 .claude
 
+# Tool caches
+.gradio/
+.playwright-mcp/
+
 # Notebooks
 notebooks/
 
-# demo
-demo/
+# Demo
+demo/tauri*
+
+# Model files (safety net)
+*.keras
+*.h5
+*.pb
+*.tflite
+*.onnx
+*.savedmodel
+
+# Archives
+*.rar
+*.zip
+*.tar.gz
+
+# Logs
+*.log
+
+# Legacy dataset directory
+Training/

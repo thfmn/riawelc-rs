@@ -179,6 +179,7 @@ def build_callbacks(
     phase: str | None = None,
     run_suffix: str | None = None,
     config_file: str | None = None,
+    extra_tags: dict[str, str] | None = None,
     tracking: Literal["mlflow", "vertex", "both", "none"] = "mlflow",
     project: str | None = None,
     location: str | None = None,
@@ -189,6 +190,9 @@ def build_callbacks(
         run_suffix: Optional suffix appended to run names (e.g. "ht_1" from
             a config filename like ``efficientnetb0_ht_1.yaml``).
         config_file: Config YAML path, logged as a tag/param for traceability.
+        extra_tags: Additional key-value tags for lineage tracking (e.g.
+            ``mask_dir``, ``pseudomask_version``).  Logged as MLflow tags
+            and Vertex AI params.
     """
     cb_config = config.callbacks
     callbacks: list[keras.callbacks.Callback] = []
@@ -245,6 +249,8 @@ def build_callbacks(
         tags["config_file"] = config_file
     if phase is not None:
         tags["phase"] = phase
+    if extra_tags:
+        tags.update(extra_tags)
 
     if tracking in ("mlflow", "both"):
         callbacks.append(
@@ -263,6 +269,8 @@ def build_callbacks(
             flat_params["config_file"] = config_file
         if phase is not None:
             flat_params["phase"] = phase
+        if extra_tags:
+            flat_params.update(extra_tags)
         callbacks.append(
             VertexAICallback(
                 experiment_name=cb_config.mlflow_experiment_name,

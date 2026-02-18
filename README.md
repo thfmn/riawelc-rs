@@ -19,8 +19,6 @@ Radiograph → Classification → Grad-CAM → Pseudo-Masks → U-Net Segmentati
 
 This project uses **RIAWELC-RS** (Radiograph-Split), a corrected version of the original [RIAWELC](https://github.com/stefyste/RIAWELC) dataset (University of Calabria, 2023). The original dataset contains 24,407 grayscale 227×227 radiographic images across 4 defect classes, extracted from 29 high-resolution industrial radiographs. RIAWELC-RS removes 2,443 exact duplicate images and re-splits at the radiograph level to eliminate data leakage, resulting in **21,964 unique images**.
 
-> **Note on image dimensions:** The original paper and GitHub README both state 224×224, but the actual distributed images are 227×227 pixels. This likely reflects the native input size of SqueezeNet/AlexNet (227×227) used by the original authors, misreported as the more commonly cited 224×224 (VGG/ResNet). All classifier configs in this project use 227×227 to match the true on-disk dimensions. The U-Net segmentation pipeline resizes to 224×224 because the encoder-decoder architecture requires dimensions that halve cleanly through 5 pooling stages (224→112→56→28→14→7).
-
 ### RIAWELC vs RIAWELC-RS
 
 | | RIAWELC (original) | RIAWELC-RS (this project) |
@@ -392,6 +390,8 @@ model:
 ```
 
 See `configs/efficientnetb0_baseline.yaml` for a complete example.
+
+> **Image dimensions:** The original paper reports 224×224, but actual images are 227×227. Classifiers use the native 227×227; the U-Net resizes to 224×224 for clean pooling (224→112→56→28→14→7).
 
 CLI flags can override config values for cloud training:
 

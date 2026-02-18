@@ -78,7 +78,6 @@ scratch/
 notebooks/
 
 # Demo
-demo/tauri*
 
 # Model files (safety net)
 *.keras

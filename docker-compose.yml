@@ -11,6 +11,11 @@ services:
       - RIAWELC_MODEL_PATH=/app/outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras
       - RIAWELC_SEG_BASELINE_PATH=/app/outputs/models/checkpoints/unet_efficientnetb0/v1/best.keras
       - RIAWELC_SEG_AUGMENTED_PATH=/app/outputs/models/checkpoints/unet_efficientnetb0_augmented/v1/best.keras
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+    stop_grace_period: 35s
     restart: unless-stopped
 
   mlflow:

@@ -70,23 +70,19 @@ async def test_ready_returns_200_when_classifier_loaded(client: AsyncClient) -> 
 
 @pytest.mark.asyncio
 async def test_ready_reports_per_model_status(client: AsyncClient) -> None:
-    """The /ready endpoint should report status for all three models."""
+    """The /ready endpoint should report status for both models."""
     orig_cls = dependencies._model_cache
     orig_base = dependencies._seg_baseline_cache
-    orig_aug = dependencies._seg_augmented_cache
 
     dependencies._model_cache = MagicMock()
     dependencies._seg_baseline_cache = MagicMock()
-    dependencies._seg_augmented_cache = None
     try:
         response = await client.get("/ready")
     finally:
         dependencies._model_cache = orig_cls
         dependencies._seg_baseline_cache = orig_base
-        dependencies._seg_augmented_cache = orig_aug
 
     assert response.status_code == 200
     data = response.json()
     assert data["models"]["classifier"] == "loaded"
     assert data["models"]["seg_baseline"] == "loaded"
-    assert data["models"]["seg_augmented"] == "not_loaded"

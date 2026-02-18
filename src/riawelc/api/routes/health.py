@@ -35,7 +35,6 @@ async def ready() -> JSONResponse:
     models: dict[str, str] = {
         "classifier": "loaded" if dependencies._model_cache is not None else "not_loaded",
         "seg_baseline": "loaded" if dependencies._seg_baseline_cache is not None else "not_loaded",
-        "seg_augmented": "loaded" if dependencies._seg_augmented_cache is not None else "not_loaded",
     }
 
     # Classifier is required; seg models are optional (200 with warning).

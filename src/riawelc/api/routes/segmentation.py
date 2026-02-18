@@ -15,7 +15,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, UploadFile
 
 from riawelc.api.dependencies import (
-    get_seg_augmented_model,
     get_seg_baseline_model,
     get_settings,
     run_inference,
@@ -38,12 +37,3 @@ async def segment_baseline(
     return UNetSegmentationResponse(**result)
 
 
-@router.post("/augmented", response_model=UNetSegmentationResponse)
-async def segment_augmented(
-    file: UploadFile,
-    model: object = Depends(get_seg_augmented_model),
-) -> UNetSegmentationResponse:
-    """Run augmented U-Net segmentation on a welding radiograph."""
-    image_bytes = await validate_and_read_upload(file, get_settings())
-    result = await run_inference(segment_with_unet, model, image_bytes)  # type: ignore[arg-type]
-    return UNetSegmentationResponse(**result)

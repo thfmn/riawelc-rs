@@ -23,7 +23,6 @@ from riawelc.api.dependencies import (
     clear_model_cache,
     clear_seg_model_cache,
     get_model,
-    get_seg_augmented_model,
     get_seg_baseline_model,
     get_settings,
 )
@@ -71,22 +70,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         get_model()
         logger.info("startup", msg="Classification model loaded successfully")
     except Exception:
-        logger.warning("startup", msg="Classification model not found — running without model")
+        logger.warning("startup", msg="Classification model not found - running without model")
     try:
         get_seg_baseline_model()
         logger.info("startup", msg="Baseline segmentation model loaded successfully")
     except Exception:
         logger.warning(
             "startup",
-            msg="Baseline segmentation model not found — endpoint will fail on use",
-        )
-    try:
-        get_seg_augmented_model()
-        logger.info("startup", msg="Augmented segmentation model loaded successfully")
-    except Exception:
-        logger.warning(
-            "startup",
-            msg="Augmented segmentation model not found — endpoint will fail on use",
+            msg="Baseline segmentation model not found - endpoint will fail on use",
         )
     yield
     logger.info("shutdown", msg="Cleaning up resources")
@@ -101,12 +92,12 @@ def _configure_otel(app: FastAPI) -> None:
         return
 
     try:
+        import os
+
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
         from opentelemetry.sdk.resources import Resource
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
-
-        import os
 
         service_name = os.environ.get("OTEL_SERVICE_NAME", "riawelc-api")
         resource = Resource.create({"service.name": service_name})

@@ -28,7 +28,8 @@ class Settings:
 
     model_path: str = field(
         default_factory=lambda: os.environ.get(
-            "RIAWELC_MODEL_PATH", "outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras"
+            "RIAWELC_MODEL_PATH",
+            "outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras",
         )
     )
     host: str = field(default_factory=lambda: os.environ.get("RIAWELC_HOST", "0.0.0.0"))
@@ -48,21 +49,11 @@ class Settings:
     seg_baseline_path: str = field(
         default_factory=lambda: os.environ.get(
             "RIAWELC_SEG_BASELINE_PATH",
-            "outputs/models/checkpoints/unet_efficientnetb0/v1/best.keras",
+            "outputs/models/checkpoints/unet_efficientnetb0_v2/v2/best.keras",
         )
     )
-    seg_augmented_path: str = field(
-        default_factory=lambda: os.environ.get(
-            "RIAWELC_SEG_AUGMENTED_PATH",
-            "outputs/models/checkpoints/unet_efficientnetb0_augmented/v1/best.keras",
-        )
-    )
-    api_key: str = field(
-        default_factory=lambda: os.environ.get("RIAWELC_API_KEY", "")
-    )
-    rate_limit: int = field(
-        default_factory=lambda: int(os.environ.get("RIAWELC_RATE_LIMIT", "30"))
-    )
+    api_key: str = field(default_factory=lambda: os.environ.get("RIAWELC_API_KEY", ""))
+    rate_limit: int = field(default_factory=lambda: int(os.environ.get("RIAWELC_RATE_LIMIT", "30")))
     otel_enabled: bool = field(
         default_factory=lambda: os.environ.get("OTEL_ENABLED", "false").lower() == "true"
     )
@@ -76,7 +67,6 @@ def get_settings() -> Settings:
 
 _model_cache: keras.Model | None = None
 _seg_baseline_cache: keras.Model | None = None
-_seg_augmented_cache: keras.Model | None = None
 
 
 def get_model() -> keras.Model:
@@ -97,23 +87,8 @@ def get_seg_baseline_model() -> keras.Model:
         import keras as _keras
 
         settings = get_settings()
-        _seg_baseline_cache = _keras.models.load_model(
-            settings.seg_baseline_path, compile=False
-        )
+        _seg_baseline_cache = _keras.models.load_model(settings.seg_baseline_path, compile=False)
     return _seg_baseline_cache
-
-
-def get_seg_augmented_model() -> keras.Model:
-    """Load and cache the augmented U-Net segmentation model."""
-    global _seg_augmented_cache  # noqa: PLW0603
-    if _seg_augmented_cache is None:
-        import keras as _keras
-
-        settings = get_settings()
-        _seg_augmented_cache = _keras.models.load_model(
-            settings.seg_augmented_path, compile=False
-        )
-    return _seg_augmented_cache
 
 
 def clear_model_cache() -> None:
@@ -123,10 +98,9 @@ def clear_model_cache() -> None:
 
 
 def clear_seg_model_cache() -> None:
-    """Clear the cached segmentation models (used during shutdown)."""
-    global _seg_baseline_cache, _seg_augmented_cache  # noqa: PLW0603
+    """Clear the cached segmentation model (used during shutdown)."""
+    global _seg_baseline_cache  # noqa: PLW0603
     _seg_baseline_cache = None
-    _seg_augmented_cache = None
 
 
 # --- Inference lock (API-8) ---

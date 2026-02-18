@@ -31,20 +31,6 @@ async def test_baseline_returns_200(
 
 
 @pytest.mark.asyncio
-async def test_augmented_returns_200(
-    client: AsyncClient, override_models, sample_image_bytes: bytes
-) -> None:
-    response = await client.post(
-        "/segment/unet/augmented",
-        files={"file": ("test.png", sample_image_bytes, "image/png")},
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert "mask_base64" in data
-    assert "model_name" in data
-
-
-@pytest.mark.asyncio
 async def test_invalid_content_type_returns_415(
     client: AsyncClient, override_models
 ) -> None:

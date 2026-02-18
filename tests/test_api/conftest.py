@@ -19,7 +19,7 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-from riawelc.api.dependencies import get_model, get_seg_augmented_model, get_seg_baseline_model
+from riawelc.api.dependencies import get_model, get_seg_baseline_model
 from riawelc.api.main import create_app
 
 
@@ -63,6 +63,5 @@ def override_models(app, mock_classifier, mock_seg_model):
     """Apply dependency overrides for all three model dependencies."""
     app.dependency_overrides[get_model] = lambda: mock_classifier
     app.dependency_overrides[get_seg_baseline_model] = lambda: mock_seg_model
-    app.dependency_overrides[get_seg_augmented_model] = lambda: mock_seg_model
     yield
     app.dependency_overrides.clear()

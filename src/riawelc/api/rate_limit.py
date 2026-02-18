@@ -83,7 +83,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={
-                    "detail": f"Rate limit exceeded. Max {settings.rate_limit} requests per minute.",
+                    "detail": (
+                        f"Rate limit exceeded. Max {settings.rate_limit} requests per minute."
+                    ),
                 },
                 headers={"Retry-After": str(retry_after)},
             )

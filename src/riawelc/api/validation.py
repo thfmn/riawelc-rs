@@ -51,7 +51,7 @@ async def validate_and_read_upload(file: UploadFile, settings: Settings) -> byte
 
     if len(image_bytes) > settings.max_upload_size:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
             detail=f"File too large. Maximum size: {settings.max_upload_size} bytes.",
         )
 

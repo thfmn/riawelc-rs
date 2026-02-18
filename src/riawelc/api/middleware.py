@@ -21,7 +21,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from riawelc.api.auth import APIKeyMiddleware
 from riawelc.api.dependencies import get_settings
+from riawelc.api.logging_middleware import LoggingMiddleware
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -78,5 +80,11 @@ def configure_middleware(app: FastAPI) -> None:
     )
 
     app.add_middleware(RequestIDMiddleware)
+
+    # API-6: API key authentication (runs after request-id is attached)
+    app.add_middleware(APIKeyMiddleware)
+
+    # API-11: Structured request/response logging (outermost — sees final response)
+    app.add_middleware(LoggingMiddleware)
 
     app.add_exception_handler(Exception, global_exception_handler)  # type: ignore[arg-type]

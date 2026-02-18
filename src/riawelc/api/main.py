@@ -94,6 +94,49 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     clear_seg_model_cache()
 
 
+def _configure_otel(app: FastAPI) -> None:
+    """Initialize OpenTelemetry tracing when enabled via settings."""
+    settings = get_settings()
+    if not settings.otel_enabled:
+        return
+
+    try:
+        from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+        from opentelemetry.sdk.resources import Resource
+        from opentelemetry.sdk.trace import TracerProvider
+        from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+        import os
+
+        service_name = os.environ.get("OTEL_SERVICE_NAME", "riawelc-api")
+        resource = Resource.create({"service.name": service_name})
+        provider = TracerProvider(resource=resource)
+
+        # Try to use OTLP exporter if installed; fall back to no exporter.
+        try:
+            from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
+                OTLPSpanExporter,
+            )
+
+            provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+        except ImportError:
+            logger.warning(
+                "otel_setup",
+                msg="OTLP exporter not installed — traces will not be exported",
+            )
+
+        from opentelemetry import trace
+
+        trace.set_tracer_provider(provider)
+        FastAPIInstrumentor.instrument_app(app)
+        logger.info("otel_setup", msg="OpenTelemetry tracing enabled")
+    except Exception:
+        logger.warning(
+            "otel_setup",
+            msg="Failed to initialize OpenTelemetry — running without tracing",
+        )
+
+
 def create_app() -> FastAPI:
     """Application factory for the RIAWELC API."""
     _configure_logging()
@@ -110,5 +153,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(predict_router)
     app.include_router(segmentation_router)
+
+    _configure_otel(app)
 
     return app

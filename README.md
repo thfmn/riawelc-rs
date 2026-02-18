@@ -136,7 +136,7 @@ python scripts/01_train_classifier.py --model efficientnetb0 --config configs/ef
 
 ## Training Pipeline
 
-### Step 1 — Train Classifiers
+### Step 1: Train Classifiers
 
 ```bash
 # Train EfficientNetB0 (recommended first)
@@ -162,7 +162,7 @@ python scripts/01_train_classifier.py \
     --tracking none
 ```
 
-### Step 2 — Evaluate
+### Step 2: Evaluate
 
 ```bash
 python scripts/02_evaluate_classifier.py \
@@ -177,7 +177,7 @@ python scripts/02_evaluate_classifier.py \
 
 Outputs: `outputs/evaluation/confusion_matrix.png`, `classification_report.csv`, `metrics.csv`
 
-### Step 3 — Grad-CAM Heatmaps
+### Step 3: Grad-CAM Heatmaps
 
 ```bash
 python scripts/03_generate_gradcam.py \
@@ -192,7 +192,7 @@ python scripts/03_generate_gradcam.py \
 
 Outputs: `outputs/gradcam/overlays/`, `outputs/gradcam/heatmaps/`
 
-### Step 4 — Pseudo-Masks
+### Step 4: Pseudo-Masks
 
 ```bash
 python scripts/04_generate_pseudomasks.py
@@ -203,7 +203,7 @@ python scripts/04_generate_pseudomasks.py --threshold 0.4 --min-area 50
 
 Outputs: `outputs/pseudomasks/`
 
-### Step 5 — Train Segmentation
+### Step 5: Train Segmentation
 
 ```bash
 python scripts/05_train_segmentation.py --config configs/segmentation_unet.yaml
@@ -212,7 +212,7 @@ python scripts/05_train_segmentation.py --config configs/segmentation_unet.yaml
 python scripts/05_train_segmentation.py --config configs/segmentation_unet.yaml --dry-run
 ```
 
-### Step 6 — Evaluate Segmentation
+### Step 6: Evaluate Segmentation
 
 ```bash
 python scripts/06_evaluate_segmentation.py \
@@ -221,7 +221,7 @@ python scripts/06_evaluate_segmentation.py \
 
 Outputs: `outputs/evaluation/segmentation/segmentation_grid.png`, `per_sample_metrics.csv`, `per_class_metrics.csv`, `summary_statistics.csv`, `iou_histogram.png`
 
-### Step 7 — Export to ONNX
+### Step 7: Export to ONNX
 
 ```bash
 python scripts/07_export_model.py \
@@ -255,7 +255,7 @@ gcloud builds submit --config cloudbuild.yaml --region=europe-west3
 ### Submit Jobs
 
 ```bash
-# Dry-run — preview job config and cost estimate
+# Dry-run: preview job config and cost estimate
 python scripts/submit_vertex_job.py --model efficientnetb0 --dry-run
 
 # Submit a GPU training job (Spot VM)

@@ -1,0 +1,46 @@
+# Training config for EfficientNetB0 classifier baseline
+model_version: "v1"
+batch_size: 32
+epochs: 15
+seed: 9
+
+optimizer:
+  name: adamw
+  learning_rate: 0.001
+  weight_decay: 0.0001
+
+loss:
+  name: categorical_crossentropy
+
+callbacks:
+  checkpoint_dir: outputs/models/checkpoints
+  save_best_only: true
+  monitor: val_loss
+  mode: min
+  lr_reduce_factor: 0.5
+  lr_reduce_patience: 5
+  lr_min: 0.000001
+  early_stop_patience: 10
+  restore_best_weights: true
+  mlflow_tracking: true
+  mlflow_tracking_uri: mlruns
+  mlflow_experiment_name: riawelc_classification
+
+model:
+  name: efficientnetb0
+  input_shape: [227, 227, 1]
+  num_classes: 4
+  freeze_backbone: true
+  fine_tune_at: 120
+
+fine_tune:
+  epochs: 25
+  learning_rate: 0.0001
+  early_stop_patience: 15
+  lr_reduce_patience: 7
+
+data:
+  train_dir: Dataset_partitioned/training
+  val_dir: Dataset_partitioned/validation
+  test_dir: Dataset_partitioned/testing
+  augmentation: true

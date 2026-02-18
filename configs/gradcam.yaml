@@ -1,0 +1,15 @@
+# Grad-CAM configuration
+target_layers:
+  efficientnetb0: "top_conv"       # last conv block in EfficientNetB0
+  resnet50v2: "post_relu"          # after final batch norm in ResNet50V2
+
+threshold:
+  default: 0.5
+  morphology_kernel_size: 5
+  min_area: 100
+
+output:
+  heatmap_dir: outputs/gradcam/heatmaps
+  overlay_dir: outputs/gradcam/overlays
+  alpha: 0.4
+  colormap: jet

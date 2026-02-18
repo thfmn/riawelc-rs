@@ -1,0 +1,20 @@
+# Override at submission time:
+#   gcloud builds submit --config cloudbuild.yaml \
+#     --substitutions=_REGION=us-central1,_PROJECT_ID=my-project
+substitutions:
+  _REGION: "europe-west3"
+  _PROJECT_ID: "riawelc-weld-class-seg"
+  _REPO: "training"
+  _IMAGE: "riawelc-training"
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t',
+      '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:latest',
+      '-f', 'Dockerfile.vertex', '.']
+
+images:
+  - '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/${_IMAGE}:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

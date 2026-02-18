@@ -1,0 +1,59 @@
+# Hyperparameter tuning #1 for EfficientNetB0 (use with --resume-from)
+#
+# Changes from baseline (efficientnetb0_baseline.yaml):
+#   fine_tune.learning_rate:       0.0001  -> 0.00005  (halved, reduce overfitting)
+#   fine_tune.epochs:              25      -> 15       (best was epoch 0 in baseline)
+#   fine_tune.early_stop_patience: 15      -> 8        (stop sooner on plateau)
+#   optimizer.weight_decay:        0.0001  -> 0.001    (stronger L2 regularization)
+#
+# Usage:
+#   python scripts/01_train_classifier.py \
+#       --model efficientnetb0 \
+#       --config configs/efficientnetb0_ht_1.yaml \
+#       --resume-from outputs/models/checkpoints/efficientnetb0/v1/feature_extraction/best.keras
+
+model_version: "v1"
+batch_size: 32
+epochs: 15
+seed: 9
+
+optimizer:
+  name: adamw
+  learning_rate: 0.001
+  weight_decay: 0.001
+
+loss:
+  name: categorical_crossentropy
+
+callbacks:
+  checkpoint_dir: outputs/models/checkpoints
+  save_best_only: true
+  monitor: val_loss
+  mode: min
+  lr_reduce_factor: 0.5
+  lr_reduce_patience: 5
+  lr_min: 0.000001
+  early_stop_patience: 10
+  restore_best_weights: true
+  mlflow_tracking: true
+  mlflow_tracking_uri: mlruns
+  mlflow_experiment_name: riawelc_classification
+
+model:
+  name: efficientnetb0
+  input_shape: [227, 227, 1]
+  num_classes: 4
+  freeze_backbone: true
+  fine_tune_at: 120
+
+fine_tune:
+  epochs: 15
+  learning_rate: 0.00005
+  early_stop_patience: 8
+  lr_reduce_patience: 4
+
+data:
+  train_dir: Dataset_partitioned/training
+  val_dir: Dataset_partitioned/validation
+  test_dir: Dataset_partitioned/testing
+  augmentation: true

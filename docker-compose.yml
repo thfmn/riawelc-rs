@@ -1,0 +1,23 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./outputs:/app/outputs:ro
+    env_file:
+      - .env
+    environment:
+      - RIAWELC_MODEL_PATH=/app/outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras
+    restart: unless-stopped
+
+  mlflow:
+    image: python:3.11-slim
+    command: >
+      bash -c "pip install mlflow && mlflow ui --backend-store-uri /mlruns --host 0.0.0.0 --port 5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns
+    profiles:
+      - dev

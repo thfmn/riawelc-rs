@@ -1,11 +1,9 @@
-# RIAWELC — Welding Defect Classification & Segmentation Pipeline
+# RIAWELC-RS - Welding Defect Classification & Segmentation Pipeline
 
 Classification and weakly-supervised segmentation of welding radiographs using transfer learning, Grad-CAM localization, and a simple FastAPI backend with edge model export.
 
 ```
 Radiograph → Classification → Grad-CAM → Pseudo-Masks → U-Net Segmentation
-    |                                                           |
-    +-- What is it? (4 classes) -- Where is it? (heatmap) -- Exact contour --+
 ```
 
 ## Dataset

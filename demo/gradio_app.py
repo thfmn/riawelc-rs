@@ -15,14 +15,16 @@
 """Gradio demo for welding defect classification and segmentation.
 
 Usage:
-    python demo/gradio_app.py
-    python demo/gradio_app.py --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras
+    uv run demo/gradio_app.py
+    uv run demo/gradio_app.py --model-path outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras
+    uv run demo/gradio_app.py --seg-model-path outputs/models/checkpoints/unet_efficientnetb0_v2/v2/best.keras
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -36,15 +38,44 @@ from riawelc.models.gradcam import generate_heatmap, overlay_heatmap
 
 CLASS_NAMES = ["crack", "lack_of_penetration", "no_defect", "porosity"]
 
+
+def create_overlay(original: np.ndarray, mask: np.ndarray, alpha: float = 0.3) -> np.ndarray:
+    """Overlay a predicted mask on the original image using a red tint."""
+    img = original.squeeze()
+    img = (img * 255).astype(np.uint8) if img.max() <= 1.0 else img.astype(np.uint8)
+
+    mask_2d = (mask.squeeze() > 0.5).astype(np.float32)
+
+    if img.ndim == 2:
+        rgb = np.stack([img, img, img], axis=-1).astype(np.float32)
+    else:
+        rgb = img.astype(np.float32)
+    red_overlay = np.zeros_like(rgb)
+    red_overlay[:, :, 0] = 255.0
+
+    for c in range(3):
+        rgb[:, :, c] = np.where(
+            mask_2d > 0,
+            rgb[:, :, c] * (1 - alpha) + red_overlay[:, :, c] * alpha,
+            rgb[:, :, c],
+        )
+
+    return np.clip(rgb, 0, 255).astype(np.uint8)
+
 _model: tf.keras.Model | None = None
 _seg_model: tf.keras.Model | None = None
 
 
 def load_models(model_path: str, seg_path: str | None = None) -> None:
     global _model, _seg_model
-    _model = tf.keras.models.load_model(model_path)
+    if Path(model_path).exists():
+        _model = tf.keras.models.load_model(model_path)
+    else:
+        print(f"WARNING: Classification model not found: {model_path}")
     if seg_path and Path(seg_path).exists():
         _seg_model = tf.keras.models.load_model(seg_path, compile=False)
+    elif seg_path:
+        print(f"WARNING: Segmentation model not found: {seg_path}")
 
 
 def preprocess(image: np.ndarray) -> np.ndarray:
@@ -69,22 +100,33 @@ def predict(image: np.ndarray) -> tuple[dict[str, float], np.ndarray, np.ndarray
         blank = np.zeros(image.shape[:2], dtype=np.uint8)
         return {}, image, blank
 
+    orig_h, orig_w = image.shape[:2]
     img = preprocess(image)
     batch = np.expand_dims(img, axis=0)
 
     preds = _model.predict(batch, verbose=0)[0]
     confidences = {CLASS_NAMES[i]: float(preds[i]) for i in range(len(CLASS_NAMES))}
 
+    # Generate heatmap at model resolution, resize to original, overlay on original
     heatmap = generate_heatmap(_model, img)
-    overlay = overlay_heatmap(img, heatmap, alpha=0.4)
+    heatmap_full = tf.image.resize(
+        heatmap[..., np.newaxis], (orig_h, orig_w),
+    ).numpy()[:, :, 0]
+    overlay = overlay_heatmap(image, heatmap_full, alpha=0.4)
 
     if _seg_model is not None:
-        seg_pred = _seg_model.predict(batch, verbose=0)[0]
-        seg_mask = (seg_pred[:, :, 0] * 255).astype(np.uint8)
+        seg_input_shape = _seg_model.input_shape[1:3]
+        seg_img = tf.image.resize(img, seg_input_shape).numpy()
+        seg_batch = np.expand_dims(seg_img, axis=0)
+        seg_pred = _seg_model.predict(seg_batch, verbose=0)[0]
+        seg_mask = tf.image.resize(
+            seg_pred, (orig_h, orig_w),
+        ).numpy()
+        seg_overlay = create_overlay(image, seg_mask)
     else:
-        seg_mask = np.zeros(img.shape[:2], dtype=np.uint8)
+        seg_overlay = np.zeros((orig_h, orig_w, 3), dtype=np.uint8)
 
-    return confidences, overlay, seg_mask
+    return confidences, overlay, seg_overlay
 
 
 def _load_examples() -> list[list[str]]:
@@ -159,7 +201,7 @@ def create_interface() -> gr.Blocks:
         # Define outputs early (unrendered) so gr.Examples can reference them
         label_output = gr.Label(label="Classification", num_top_classes=4, render=False)
         gradcam_output = gr.Image(label="Grad-CAM Overlay", render=False)
-        seg_output = gr.Image(label="Segmentation Mask", render=False)
+        seg_output = gr.Image(label="Segmentation Overlay", render=False)
 
         with gr.Row():
             with gr.Column():
@@ -191,15 +233,15 @@ def create_interface() -> gr.Blocks:
         )
 
         gr.Markdown("---")
-        gr.Markdown("**Model**: EfficientNetB0 transfer learning | **Dataset**: RIAWELC (24,407 radiographic images)")
+        gr.Markdown("**Models**: EfficientNetB0 (classification) + U-Net (segmentation) | **Dataset**: RIAWELC-RS (21,964 radiographic images)")
 
     return demo
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Launch Gradio demo.")
-    parser.add_argument("--model-path", type=str, default="outputs/models/checkpoints/efficientnetb0/v1/best.keras")
-    parser.add_argument("--seg-model-path", type=str, default=None)
+    parser.add_argument("--model-path", type=str, default="outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras", help="Path to classification model.")
+    parser.add_argument("--seg-model-path", type=str, default="outputs/models/checkpoints/unet_efficientnetb0_v2/v2/best.keras", help="Path to segmentation model.")
     parser.add_argument("--port", type=int, default=7860)
     parser.add_argument("--share", action="store_true")
     return parser.parse_args()
@@ -239,6 +281,9 @@ def main() -> None:
     _patch_gradio_run_route_bug()
     args = parse_args()
     load_models(args.model_path, args.seg_model_path)
+    cache_dir = Path(".gradio/cached_examples")
+    if cache_dir.exists():
+        shutil.rmtree(cache_dir)
     demo = create_interface()
     demo.launch(server_port=args.port, share=args.share)
 

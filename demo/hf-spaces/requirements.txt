@@ -1,0 +1,8 @@
+# RIAWELC Hugging Face Spaces dependencies
+# Gradio SDK is pre-installed by HF Spaces; pin to match sdk_version in README.md
+gradio>=6.5.1
+tensorflow>=2.15.0,<2.19
+numpy>=1.24.0,<2.0
+matplotlib>=3.7.0
+Pillow>=10.0.0
+keras>=3.0.0,<4.0

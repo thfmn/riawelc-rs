@@ -12,13 +12,13 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-from riawelc.api.dependencies import get_settings
+from riawelc.api.dependencies import get_model, get_seg_baseline_model, get_settings
 from riawelc.api.main import create_app
 
 
@@ -31,6 +31,9 @@ def _make_app(rate_limit: int = 5):
     ):
         get_settings.cache_clear()
         app = create_app()
+    # Override model dependencies so tests don't need real model files
+    app.dependency_overrides[get_model] = lambda: MagicMock(name="mock_classifier")
+    app.dependency_overrides[get_seg_baseline_model] = lambda: MagicMock(name="mock_seg")
     return app
 
 

@@ -10,6 +10,9 @@
 
 set -euo pipefail
 
+# Load .env if present (provides bucket names, project ID, etc.)
+if [[ -f .env ]]; then set -a; source .env; set +a; fi
+
 DATA_BUCKET="${RIAWELC_DATA_BUCKET:?Set RIAWELC_DATA_BUCKET in .env}"
 ARTIFACTS_BUCKET="${RIAWELC_ARTIFACTS_BUCKET:?Set RIAWELC_ARTIFACTS_BUCKET in .env}"
 LOCAL_DATA="Dataset_partitioned"

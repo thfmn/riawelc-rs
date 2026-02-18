@@ -12,6 +12,9 @@
 
 set -euo pipefail
 
+# Load .env if present (provides bucket names, project ID, etc.)
+if [[ -f .env ]]; then set -a; source .env; set +a; fi
+
 BUCKET="${GCS_ARTIFACTS_BUCKET:?Set GCS_ARTIFACTS_BUCKET in .env}"
 LOCAL_DIR="mlruns"
 GCS_DIR="gs://${BUCKET}/mlruns"

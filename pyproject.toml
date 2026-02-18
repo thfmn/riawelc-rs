@@ -21,6 +21,7 @@ dependencies = [
     "mlflow>=2.16",
     "tqdm>=4.66",
     "structlog>=24.4",
+    "python-dotenv>=1.0",
     "jupyterlab>=4.5.4",
     "gradio>=6.5.1",
     "opencv-python>=4.13.0.92",

@@ -31,12 +31,30 @@ from PIL import Image
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate pseudo-masks from Grad-CAM heatmaps.")
-    parser.add_argument("--heatmap-dir", type=Path, default=Path("outputs/gradcam/heatmaps_raw"))
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/pseudomasks_v2"))
-    parser.add_argument("--threshold", type=float, default=0.5, help="Binarization threshold (0-1).")
-    parser.add_argument("--kernel-size", type=int, default=5, help="Morphological kernel size.")
-    parser.add_argument("--min-area", type=int, default=100, help="Minimum connected component area in pixels.")
-    parser.add_argument("--fill-holes", action=argparse.BooleanOptionalAction, default=True, help="Fill holes in binary masks.")
+    parser.add_argument(
+        "--heatmap-dir", type=Path,
+        default=Path("outputs/gradcam/heatmaps_raw"),
+    )
+    parser.add_argument(
+        "--output-dir", type=Path,
+        default=Path("outputs/pseudomasks_v2"),
+    )
+    parser.add_argument(
+        "--threshold", type=float, default=0.5,
+        help="Binarization threshold (0-1).",
+    )
+    parser.add_argument(
+        "--kernel-size", type=int, default=5,
+        help="Morphological kernel size.",
+    )
+    parser.add_argument(
+        "--min-area", type=int, default=100,
+        help="Minimum connected component area in pixels.",
+    )
+    parser.add_argument(
+        "--fill-holes", action=argparse.BooleanOptionalAction,
+        default=True, help="Fill holes in binary masks.",
+    )
     return parser.parse_args()
 
 
@@ -90,7 +108,10 @@ def main() -> None:
         out_class_dir.mkdir(parents=True, exist_ok=True)
 
         for heatmap_path in sorted(class_dir.glob("*.png")):
-            mask = create_pseudomask(heatmap_path, args.threshold, args.kernel_size, args.min_area, args.fill_holes)
+            mask = create_pseudomask(
+                heatmap_path, args.threshold, args.kernel_size,
+                args.min_area, args.fill_holes,
+            )
             Image.fromarray(mask).save(out_class_dir / heatmap_path.name)
             total += 1
 

@@ -76,12 +76,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         get_seg_baseline_model()
         logger.info("startup", msg="Baseline segmentation model loaded successfully")
     except Exception:
-        logger.warning("startup", msg="Baseline segmentation model not found — endpoint will fail on use")
+        logger.warning(
+            "startup",
+            msg="Baseline segmentation model not found — endpoint will fail on use",
+        )
     try:
         get_seg_augmented_model()
         logger.info("startup", msg="Augmented segmentation model loaded successfully")
     except Exception:
-        logger.warning("startup", msg="Augmented segmentation model not found — endpoint will fail on use")
+        logger.warning(
+            "startup",
+            msg="Augmented segmentation model not found — endpoint will fail on use",
+        )
     yield
     logger.info("shutdown", msg="Cleaning up resources")
     clear_model_cache()

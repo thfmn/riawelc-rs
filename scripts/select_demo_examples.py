@@ -21,7 +21,8 @@ writes a metadata JSON alongside them.
 
 Usage:
     python scripts/select_demo_examples.py
-    python scripts/select_demo_examples.py --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras
+    python scripts/select_demo_examples.py \\
+        --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras
 """
 
 from __future__ import annotations
@@ -237,7 +238,9 @@ def main() -> None:
             "source": src_path,
             "true_class": CLASS_NAMES[chosen["true_cls"]],
             "confidence": round(chosen["winner_prob"], 4),
-            "runner_up_class": CLASS_NAMES[lp_idx if chosen["true_cls"] == crack_idx else crack_idx],
+            "runner_up_class": CLASS_NAMES[
+                lp_idx if chosen["true_cls"] == crack_idx else crack_idx
+            ],
             "runner_up_prob": round(chosen["other_prob"], 4),
             "gap": round(chosen["gap"], 4),
             "probabilities": {k: round(v, 4) for k, v in probs.items()},

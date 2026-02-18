@@ -15,8 +15,11 @@
 """Export trained models to ONNX (and optionally TensorRT).
 
 Usage:
-    python scripts/07_export_model.py --format onnx --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras
-    python scripts/07_export_model.py --format onnx --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras --validate
+    python scripts/07_export_model.py --format onnx \\
+        --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras
+    python scripts/07_export_model.py --format onnx \\
+        --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras \\
+        --validate
 """
 
 from __future__ import annotations
@@ -47,10 +50,22 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Export format.",
     )
-    parser.add_argument("--model-path", type=Path, required=True, help="Path to Keras model.")
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/exported"), help="Output directory.")
-    parser.add_argument("--validate", action="store_true", help="Validate ONNX output against TF.")
-    parser.add_argument("--benchmark", action="store_true", help="Run latency benchmark.")
+    parser.add_argument(
+        "--model-path", type=Path, required=True,
+        help="Path to Keras model.",
+    )
+    parser.add_argument(
+        "--output-dir", type=Path,
+        default=Path("outputs/exported"), help="Output directory.",
+    )
+    parser.add_argument(
+        "--validate", action="store_true",
+        help="Validate ONNX output against TF.",
+    )
+    parser.add_argument(
+        "--benchmark", action="store_true",
+        help="Run latency benchmark.",
+    )
     parser.add_argument("--opset", type=int, default=17, help="ONNX opset version.")
     return parser.parse_args()
 
@@ -89,10 +104,14 @@ def main() -> None:
             test_images = np.random.randint(0, 256, size=(10, *input_shape)).astype(np.float32)
 
             tf_bench = benchmark_inference(savedmodel_path, test_images, backend="tensorflow")
-            print(f"  TF:   {tf_bench['mean_latency_ms']:.1f}ms +/- {tf_bench['std_latency_ms']:.1f}ms")
+            tf_mean = tf_bench['mean_latency_ms']
+            tf_std = tf_bench['std_latency_ms']
+            print(f"  TF:   {tf_mean:.1f}ms +/- {tf_std:.1f}ms")
 
             onnx_bench = benchmark_inference(onnx_path, test_images, backend="onnx")
-            print(f"  ONNX: {onnx_bench['mean_latency_ms']:.1f}ms +/- {onnx_bench['std_latency_ms']:.1f}ms")
+            ox_mean = onnx_bench['mean_latency_ms']
+            ox_std = onnx_bench['std_latency_ms']
+            print(f"  ONNX: {ox_mean:.1f}ms +/- {ox_std:.1f}ms")
 
     elif args.format == "tensorrt":
         print("TensorRT export requires ONNX model as input.")

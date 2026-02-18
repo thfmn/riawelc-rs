@@ -198,7 +198,8 @@ def main() -> None:
     if args.mask_dir is not None:
         mask_dir = args.mask_dir
     else:
-        raw = yaml.safe_load(open(args.config))
+        with open(args.config) as f:
+            raw = yaml.safe_load(f)
         mask_dir = Path(raw.get("segmentation", {}).get("mask_dir", "outputs/pseudomasks"))
     image_dir = Path(config.data.train_dir)
 

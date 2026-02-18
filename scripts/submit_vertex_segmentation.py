@@ -175,7 +175,7 @@ def print_cost_estimate(
     print(f"\n{'=' * 60}")
     print("Cost Estimation")
     print("=" * 60)
-    print(f"  Task:            U-Net segmentation")
+    print("  Task:            U-Net segmentation")
     print(f"  Machine type:    {machine_type} ({vm_label})")
     print(f"    Instance:      {machine_config.machine_type}")
     if machine_config.has_gpu:
@@ -458,7 +458,7 @@ def main() -> None:
     print("=" * 60)
     print("Vertex AI Segmentation Job Submission")
     print("=" * 60)
-    print(f"  Task:            U-Net segmentation")
+    print("  Task:            U-Net segmentation")
     print(f"  Config:          {args.config}")
     print(f"  Machine:         {args.machine_type} ({vm_label})")
     print(f"    Instance:      {machine_config.machine_type}")

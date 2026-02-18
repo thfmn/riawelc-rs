@@ -15,8 +15,12 @@
 """Generate Grad-CAM heatmaps for test set images.
 
 Usage:
-    python scripts/03_generate_gradcam.py --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras --config configs/gradcam.yaml
-    python scripts/03_generate_gradcam.py --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras --num-samples 50
+    python scripts/03_generate_gradcam.py \\
+        --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras \\
+        --config configs/gradcam.yaml
+    python scripts/03_generate_gradcam.py \\
+        --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras \\
+        --num-samples 50
 """
 
 from __future__ import annotations
@@ -40,12 +44,31 @@ CLASS_NAMES = ["crack", "lack_of_penetration", "no_defect", "porosity"]
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate Grad-CAM heatmaps.")
-    parser.add_argument("--model-path", type=Path, required=True, help="Path to trained model.")
-    parser.add_argument("--data-dir", type=Path, default=Path("Dataset_partitioned/testing"), help="Test images dir.")
-    parser.add_argument("--config", type=str, default="configs/gradcam.yaml", help="Grad-CAM config YAML.")
-    parser.add_argument("--output-dir", type=Path, default=Path("outputs/gradcam"), help="Output directory.")
-    parser.add_argument("--num-samples", type=int, default=None, help="Max samples per class (default: all).")
-    parser.add_argument("--target-layer", type=str, default=None, help="Override target conv layer name.")
+    parser.add_argument(
+        "--model-path", type=Path, required=True,
+        help="Path to trained model.",
+    )
+    parser.add_argument(
+        "--data-dir", type=Path,
+        default=Path("Dataset_partitioned/testing"),
+        help="Test images dir.",
+    )
+    parser.add_argument(
+        "--config", type=str, default="configs/gradcam.yaml",
+        help="Grad-CAM config YAML.",
+    )
+    parser.add_argument(
+        "--output-dir", type=Path,
+        default=Path("outputs/gradcam"), help="Output directory.",
+    )
+    parser.add_argument(
+        "--num-samples", type=int, default=None,
+        help="Max samples per class (default: all).",
+    )
+    parser.add_argument(
+        "--target-layer", type=str, default=None,
+        help="Override target conv layer name.",
+    )
     return parser.parse_args()
 
 

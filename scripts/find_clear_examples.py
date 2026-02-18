@@ -113,7 +113,7 @@ def main() -> None:
                       ha="center", va="center", transform=label_ax.transAxes)
         label_ax.axis("off")
 
-        for rank, (idx, conf) in enumerate(zip(top_indices, top_confidences)):
+        for rank, (idx, conf) in enumerate(zip(top_indices, top_confidences, strict=True)):
             fpath = file_paths[idx]
             fname = Path(fpath).name
             print(f"  [{rank+1}] {fname}  (confidence: {conf:.4f})")
@@ -154,7 +154,7 @@ def find_borderline_examples(
     TOP_BORDERLINE = 5
 
     print(f"\n{'#'*70}")
-    print(f"  BORDERLINE CORRECT PREDICTIONS (confidence closest to 50%)")
+    print("  BORDERLINE CORRECT PREDICTIONS (confidence closest to 50%)")
     print(f"{'#'*70}")
 
     # ── Per-class borderline examples ───────────────────────────────────
@@ -192,7 +192,8 @@ def find_borderline_examples(
             print(f"  [{rank+1}] {fname}")
             print(f"       Winner:    {display_name} = {conf:.4f}")
             print(f"       Runner-up: {runner_up_name} = {runner_up_prob:.4f}")
-            print(f"       All probs: {dict(zip(CLASS_NAMES, [f'{p:.4f}' for p in probs]))}")
+            prob_dict = dict(zip(CLASS_NAMES, [f'{p:.4f}' for p in probs], strict=True))
+            print(f"       All probs: {prob_dict}")
 
             all_borderline.append({
                 "idx": idx,
@@ -209,7 +210,7 @@ def find_borderline_examples(
     top_global = all_borderline[:10]
 
     print(f"\n{'='*60}")
-    print(f"  GLOBAL TOP-10 MOST BORDERLINE (any class)")
+    print("  GLOBAL TOP-10 MOST BORDERLINE (any class)")
     print(f"{'='*60}")
     for rank, item in enumerate(top_global):
         fname = Path(item["fpath"]).name
@@ -249,7 +250,7 @@ def find_borderline_examples(
         ax_bar.axvline(0.5, color="gray", linestyle="--", linewidth=0.8, alpha=0.6)
 
         # Annotate bars with probabilities
-        for bar, prob in zip(bars, probs):
+        for bar, prob in zip(bars, probs, strict=True):
             if prob > 0.05:
                 ax_bar.text(bar.get_width() - 0.02, bar.get_y() + bar.get_height() / 2,
                             f"{prob:.1%}", ha="right", va="center", fontsize=9,
@@ -262,8 +263,11 @@ def find_borderline_examples(
         fname = Path(item["fpath"]).stem
         ax_bar.set_title(fname, fontsize=8, color="gray")
 
-    fig.suptitle("Most Borderline Correct Predictions (Test Set)\nCorrectly classified but model was least confident",
-                 fontsize=13, fontweight="bold")
+    fig.suptitle(
+        "Most Borderline Correct Predictions (Test Set)\n"
+        "Correctly classified but model was least confident",
+        fontsize=13, fontweight="bold",
+    )
     plt.tight_layout()
     out_path = OUTPUT_DIR / "borderline_examples.png"
     fig.savefig(out_path, dpi=150, bbox_inches="tight")

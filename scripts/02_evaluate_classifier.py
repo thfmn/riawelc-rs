@@ -17,8 +17,11 @@
 Generates confusion matrix, classification report, and per-class metrics CSV.
 
 Usage:
-    python scripts/02_evaluate_classifier.py --model efficientnetb0 --config configs/efficientnetb0_baseline.yaml
-    python scripts/02_evaluate_classifier.py --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras --config configs/efficientnetb0_baseline.yaml
+    python scripts/02_evaluate_classifier.py \\
+        --model efficientnetb0 --config configs/efficientnetb0_baseline.yaml
+    python scripts/02_evaluate_classifier.py \\
+        --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras \\
+        --config configs/efficientnetb0_baseline.yaml
 """
 
 from __future__ import annotations
@@ -44,8 +47,14 @@ CLASS_NAMES = ["crack", "lack_of_penetration", "no_defect", "porosity"]
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate a trained classifier.")
-    parser.add_argument("--model", type=str, default=None, help="Model name (resolves checkpoint path).")
-    parser.add_argument("--model-path", type=Path, default=None, help="Direct path to model checkpoint.")
+    parser.add_argument(
+        "--model", type=str, default=None,
+        help="Model name (resolves checkpoint path).",
+    )
+    parser.add_argument(
+        "--model-path", type=Path, default=None,
+        help="Direct path to model checkpoint.",
+    )
     parser.add_argument("--config", type=str, required=True, help="Path to training config YAML.")
     parser.add_argument(
         "--output-dir", type=Path, default=None,
@@ -58,7 +67,8 @@ def resolve_model_path(args: argparse.Namespace, config: TrainingConfig) -> Path
     if args.model_path is not None:
         return args.model_path
     if args.model is not None:
-        return Path(config.callbacks.checkpoint_dir) / args.model / config.model_version / "best.keras"
+        base = Path(config.callbacks.checkpoint_dir)
+        return base / args.model / config.model_version / "best.keras"
     print("ERROR: Provide either --model or --model-path.")
     sys.exit(1)
 
@@ -94,15 +104,15 @@ def main() -> None:
     y_true = np.concatenate([y.numpy() for _, y in test_ds])
     y_pred_probs = model.predict(test_ds, verbose=1)
 
-    if y_true.ndim > 1:
-        y_true_labels = np.argmax(y_true, axis=1)
-    else:
-        y_true_labels = y_true
+    y_true_labels = np.argmax(y_true, axis=1) if y_true.ndim > 1 else y_true
     y_pred_labels = np.argmax(y_pred_probs, axis=1)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    report = classification_report(y_true_labels, y_pred_labels, target_names=CLASS_NAMES, output_dict=True)
+    report = classification_report(
+        y_true_labels, y_pred_labels,
+        target_names=CLASS_NAMES, output_dict=True,
+    )
     report_df = pd.DataFrame(report).transpose()
     report_df.to_csv(args.output_dir / "classification_report.csv")
     print("\nClassification Report:")
@@ -110,7 +120,10 @@ def main() -> None:
 
     cm = confusion_matrix(y_true_labels, y_pred_labels)
     fig, ax = plt.subplots(figsize=(8, 6))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=CLASS_NAMES, yticklabels=CLASS_NAMES, ax=ax)
+    sns.heatmap(
+        cm, annot=True, fmt="d", cmap="Blues",
+        xticklabels=CLASS_NAMES, yticklabels=CLASS_NAMES, ax=ax,
+    )
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")
     ax.set_title("Confusion Matrix")

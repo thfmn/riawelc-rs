@@ -14,7 +14,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
-from riawelc.api.dependencies import get_seg_augmented_model, get_seg_baseline_model, get_settings
+from riawelc.api.dependencies import (
+    get_seg_augmented_model,
+    get_seg_baseline_model,
+    get_settings,
+    run_inference,
+)
 from riawelc.api.schemas import UNetSegmentationResponse
 from riawelc.inference.predictor import segment_with_unet
 
@@ -47,7 +52,7 @@ async def segment_baseline(
 ) -> UNetSegmentationResponse:
     """Run baseline U-Net segmentation on a welding radiograph."""
     image_bytes = await _read_validated_image(file)
-    result = segment_with_unet(model, image_bytes)  # type: ignore[arg-type]
+    result = await run_inference(segment_with_unet, model, image_bytes)  # type: ignore[arg-type]
     return UNetSegmentationResponse(**result)
 
 
@@ -58,5 +63,5 @@ async def segment_augmented(
 ) -> UNetSegmentationResponse:
     """Run augmented U-Net segmentation on a welding radiograph."""
     image_bytes = await _read_validated_image(file)
-    result = segment_with_unet(model, image_bytes)  # type: ignore[arg-type]
+    result = await run_inference(segment_with_unet, model, image_bytes)  # type: ignore[arg-type]
     return UNetSegmentationResponse(**result)

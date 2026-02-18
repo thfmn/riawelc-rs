@@ -57,6 +57,9 @@ class Settings:
             "outputs/models/checkpoints/unet_efficientnetb0_augmented/v1/best.keras",
         )
     )
+    api_key: str = field(
+        default_factory=lambda: os.environ.get("RIAWELC_API_KEY", "")
+    )
 
 
 @lru_cache(maxsize=1)

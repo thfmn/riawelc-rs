@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
-from riawelc.api.dependencies import get_model, get_settings
+from riawelc.api.dependencies import get_model, get_settings, run_inference
 from riawelc.api.schemas import ModelInfoResponse, PredictionResponse, SegmentationResponse
 from riawelc.data import CLASS_NAMES
 from riawelc.inference.predictor import WeldingDefectPredictor
@@ -49,7 +49,7 @@ async def predict(
     """Classify a welding radiograph and return prediction with Grad-CAM overlay."""
     image_bytes = await _read_validated_image(file)
     predictor = WeldingDefectPredictor(model)  # type: ignore[arg-type]
-    result = predictor.predict(image_bytes)
+    result = await run_inference(predictor.predict, image_bytes)
     return PredictionResponse(**result)
 
 
@@ -61,7 +61,7 @@ async def segment(
     """Generate a weakly-supervised segmentation mask for a welding radiograph."""
     image_bytes = await _read_validated_image(file)
     predictor = WeldingDefectPredictor(model)  # type: ignore[arg-type]
-    result = predictor.segment(image_bytes)
+    result = await run_inference(predictor.segment, image_bytes)
     return SegmentationResponse(**result)
 
 

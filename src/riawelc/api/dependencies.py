@@ -12,10 +12,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import keras
@@ -27,7 +28,7 @@ class Settings:
 
     model_path: str = field(
         default_factory=lambda: os.environ.get(
-            "RIAWELC_MODEL_PATH", "outputs/models/checkpoints/best.keras"
+            "RIAWELC_MODEL_PATH", "outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras"
         )
     )
     host: str = field(default_factory=lambda: os.environ.get("RIAWELC_HOST", "0.0.0.0"))
@@ -117,3 +118,22 @@ def clear_seg_model_cache() -> None:
     global _seg_baseline_cache, _seg_augmented_cache  # noqa: PLW0603
     _seg_baseline_cache = None
     _seg_augmented_cache = None
+
+
+# --- Inference lock (API-8) ---
+# Module-level lock to serialize TF/Keras inference calls.
+# asyncio.Lock() is safe to create at module level in Python 3.10+
+# (no longer binds to a specific event loop on creation).
+_inference_lock = asyncio.Lock()
+
+
+async def run_inference(fn: Any, *args: Any) -> Any:
+    """Run a CPU-bound inference function under the inference lock.
+
+    Acquires ``_inference_lock`` so that only one TensorFlow prediction
+    runs at a time (TF is not thread-safe), then offloads the blocking
+    call to a worker thread via ``asyncio.to_thread`` so the event loop
+    is not blocked.
+    """
+    async with _inference_lock:
+        return await asyncio.to_thread(fn, *args)

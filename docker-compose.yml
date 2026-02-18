@@ -9,6 +9,8 @@ services:
       - .env
     environment:
       - RIAWELC_MODEL_PATH=/app/outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras
+      - RIAWELC_SEG_BASELINE_PATH=/app/outputs/models/checkpoints/unet_efficientnetb0/v1/best.keras
+      - RIAWELC_SEG_AUGMENTED_PATH=/app/outputs/models/checkpoints/unet_efficientnetb0_augmented/v1/best.keras
     restart: unless-stopped
 
   mlflow:

@@ -73,8 +73,8 @@ def configure_middleware(app: FastAPI) -> None:
         CORSMiddleware,
         allow_origins=settings.cors_origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type", "X-Request-ID", "X-API-Key", "Authorization"],
     )
 
     app.add_middleware(RequestIDMiddleware)

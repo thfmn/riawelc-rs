@@ -144,7 +144,7 @@ python scripts/01_train_classifier.py \
     --model efficientnetb0 \
     --config configs/efficientnetb0_baseline.yaml
 
-# Train ResNet50V2
+# Train ResNet50V2 (optional)
 python scripts/01_train_classifier.py \
     --model resnet50v2 \
     --config configs/resnet50v2_baseline.yaml

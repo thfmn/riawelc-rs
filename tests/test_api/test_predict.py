@@ -100,7 +100,7 @@ async def test_predict_oversized_file_returns_413(
 
     small_settings = Settings(max_upload_size=100)
     with patch("riawelc.api.routes.predict.get_settings", return_value=small_settings):
-        large_data = b"\x89PNG" + b"\x00" * 200
+        large_data = b"\x89PNG\r\n" + b"\x00" * 200
         response = await client.post(
             "/predict",
             files={"file": ("big.png", large_data, "image/png")},

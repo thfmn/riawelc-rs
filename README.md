@@ -1,5 +1,10 @@
 # RIAWELC-RS: Welding Radiograph Classification & Weakly-Supervised Segmentation
 
+[![CI](https://github.com/thfmn/riawelc-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/thfmn/riawelc-rs/actions/workflows/ci.yml)
+![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
+![Tests](https://img.shields.io/badge/tests-112%20passed-brightgreen)
+![uv](https://img.shields.io/badge/package%20manager-uv-blueviolet)
+
 Classification and weakly-supervised segmentation of welding radiographs using transfer learning, Grad-CAM localization, and a simple FastAPI backend with edge model export.
 
 ```

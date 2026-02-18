@@ -60,6 +60,9 @@ class Settings:
     api_key: str = field(
         default_factory=lambda: os.environ.get("RIAWELC_API_KEY", "")
     )
+    rate_limit: int = field(
+        default_factory=lambda: int(os.environ.get("RIAWELC_RATE_LIMIT", "30"))
+    )
 
 
 @lru_cache(maxsize=1)

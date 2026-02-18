@@ -24,6 +24,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from riawelc.api.auth import APIKeyMiddleware
 from riawelc.api.dependencies import get_settings
 from riawelc.api.logging_middleware import LoggingMiddleware
+from riawelc.api.rate_limit import RateLimitMiddleware
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -83,6 +84,9 @@ def configure_middleware(app: FastAPI) -> None:
 
     # API-6: API key authentication (runs after request-id is attached)
     app.add_middleware(APIKeyMiddleware)
+
+    # API-7: Rate limiting on inference endpoints (runs after auth)
+    app.add_middleware(RateLimitMiddleware)
 
     # API-11: Structured request/response logging (outermost — sees final response)
     app.add_middleware(LoggingMiddleware)

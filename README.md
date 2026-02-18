@@ -10,7 +10,20 @@ Radiograph → Classification → Grad-CAM → Pseudo-Masks → U-Net Segmentati
 
 ## Dataset
 
-[RIAWELC](https://github.com/stefyste/RIAWELC) (University of Calabria, 2023): 24,407 grayscale 224×224 radiographic images across 4 defect classes, extracted from 29 high-resolution industrial radiographs.
+This project uses **RIAWELC-RS** (Radiograph-Split), a corrected version of the original [RIAWELC](https://github.com/stefyste/RIAWELC) dataset (University of Calabria, 2023). The original dataset contains 24,407 grayscale 227×227 radiographic images across 4 defect classes, extracted from 29 high-resolution industrial radiographs. RIAWELC-RS removes 2,443 exact duplicate images and re-splits at the radiograph level to eliminate data leakage, resulting in **21,964 unique images**.
+
+> **Note on image dimensions:** The original paper and GitHub README both state 224×224, but the actual distributed images are 227×227 pixels. This likely reflects the native input size of SqueezeNet/AlexNet (227×227) used by the original authors, misreported as the more commonly cited 224×224 (VGG/ResNet). All classifier configs in this project use 227×227 to match the true on-disk dimensions. The U-Net segmentation pipeline resizes to 224×224 because the encoder-decoder architecture requires dimensions that halve cleanly through 5 pooling stages (224→112→56→28→14→7).
+
+### RIAWELC vs RIAWELC-RS
+
+| | RIAWELC (original) | RIAWELC-RS (this project) |
+|---|---|---|
+| Total images | 24,407 | 21,964 |
+| Duplicates | 2,443 across splits | Removed |
+| Split strategy | Random (patch-level) | Radiograph-level |
+| Data leakage | Yes | None |
+
+### RIAWELC-RS Split
 
 | Class | Code | Train | Val | Test |
 |-------|------|-------|-----|------|
@@ -20,26 +33,40 @@ Radiograph → Classification → Grad-CAM → Pseudo-Masks → U-Net Segmentati
 | Porosity | PO | 3,761 | 790 | 1,137 |
 | **Total** | | **15,663** | **3,572** | **2,729** |
 
-## Dataset Integrity: Radiograph-Level Splitting
+## Data Leakage in the Original RIAWELC Dataset
 
 ### The Problem
 
-The original RIAWELC dataset has data leakage. The 29 source radiographs (2000×8640 pixels each) were sliced into 24,407 patches using a sliding window with overlap, then resized to 224×224. The original authors pooled all patches and randomly assigned them to train (65%), validation (25%), and test (10%) splits.
+The original RIAWELC dataset contains a severe data leakage issue. The 29 source radiographs (2000×8640 pixels each) were sliced into 24,407 patches using a sliding window with overlap, then resized to 227×227 (see note above). The original authors pooled all patches and randomly assigned them to train (65%), validation (25%), and test (10%) splits.
 
-This causes two forms of leakage:
+MD5 checksum verification reveals that **2,443 of 2,443 test images (100%) are byte-for-byte identical to images in the training set**. The entire test set is a subset of the training data. Any model evaluated on these splits is partially evaluated on its own training examples.
 
-1. **Exact duplicates across splits.** MD5 checksum verification shows that 2,443 of 2,443 test images are byte-for-byte identical to images in the training set — the test set is a complete subset of the training data.
-2. **Overlapping patches from the same weld.** Even where images are not exact duplicates, overlapping sliding-window patches from the same physical radiograph appear in both training and evaluation splits, leaking spatial context.
+Beyond exact duplicates, overlapping sliding-window patches from the same physical radiograph appear across splits, leaking spatial context even where images are not identical.
 
-Any model evaluated on the original splits reports inflated metrics that do not reflect real-world generalization.
+### Impact on Published Results
 
-### The Fix
+Several papers report classification results on RIAWELC using the original splits or drawing from the same undeduplicated image pool. The table below lists published accuracies we are aware of. Because the original test set consists entirely of training duplicates, these metrics do not reflect generalization to unseen data and should be interpreted with caution.
 
-All patches are grouped by their source radiograph, identified from filenames (e.g., `RRT-30R_Img1_A80_S1_[9][58].png` maps to radiograph `RRT-30R`). The dataset is then re-split at the radiograph level: every patch from a given radiograph goes to exactly one split.
+| Paper | Year | Journal | Reported Metric | Split Method |
+|---|---|---|---|---|
+| [Totino et al.](https://doi.org/10.53375/ijecer.2023.320) | 2023 | IJECER | 93.33% acc. | Original 65/25/10 splits |
+| [Palma-Ramírez et al.](https://doi.org/10.1016/j.heliyon.2024.e30590) | 2024 | Heliyon | 98.75% acc. | 5-fold CV on 1,600 balanced samples from same image pool |
+| [Xia et al.](https://doi.org/10.1088/1361-6501/ae09ce) | 2025 | Meas. Sci. Technol. | >92% acc. | RIAWELC as intermediate fine-tuning source |
+| [Ngo Thi Hoa et al.](https://doi.org/10.1177/16878132251341615) | 2025 | Adv. Mech. Eng. | 99.83% acc. | Full 24,407 images, original splits |
+| [López et al.](https://doi.org/10.3390/s25196183) | 2025 | Sensors | 99.87% F1 | 10-fold CV on merged train+val (21,964), tested on original 2,443 test set |
 
-This guarantees zero information leakage — the model never sees any patch from a test or validation weld during training.
+None of these papers report investigating or addressing the duplicate issue. For comparison, the EfficientNetB0 classifier in this project achieves **81.86%** on the leakage-free RIAWELC-RS test split (see [Results](#results) below).
 
-### Final Split
+> **Note:** We do not suggest that the above results are without merit in other respects — architectural contributions, augmentation strategies, and transfer learning methods may well be valuable. However, the headline accuracy figures on RIAWELC cannot be taken at face value given that the evaluation data is contained in the training data.
+
+### RIAWELC-RS: The Fix
+
+RIAWELC-RS addresses both forms of leakage:
+
+1. **Deduplication.** All 2,443 duplicate images are removed, reducing the dataset from 24,407 to 21,964 unique images.
+2. **Radiograph-level splitting.** Patches are grouped by their source radiograph, identified from filenames (e.g., `RRT-30R_Img1_A80_S1_[9][58].png` maps to radiograph `RRT-30R`). Every patch from a given radiograph goes to exactly one split, ensuring zero information leakage between training and evaluation.
+
+### RIAWELC-RS Final Split
 
 | Split | Radiographs | crack | lack_of_pen. | no_defect | porosity | Total |
 |---|---|---|---|---|---|---|

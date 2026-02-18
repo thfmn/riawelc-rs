@@ -7,10 +7,6 @@
 
 Classification and weakly-supervised segmentation of welding radiographs using transfer learning, Grad-CAM localization, and a simple FastAPI backend with edge model export.
 
-```
-Radiograph → Classification → Grad-CAM → Pseudo-Masks → U-Net Segmentation
-```
-
 <p align="center">
   <img src="demo/tauri-app/riawelc-inspector.png" alt="RIAWELC Inspector — Tauri desktop app for welding defect analysis" width="720">
 </p>
@@ -142,6 +138,10 @@ python scripts/01_train_classifier.py --model efficientnetb0 --config configs/ef
 ```
 
 ## Training Pipeline
+
+```
+Radiograph → Classification → Grad-CAM → Pseudo-Masks → U-Net Segmentation
+```
 
 ### Step 1: Train Classifiers
 

@@ -171,7 +171,7 @@ python scripts/02_evaluate_classifier.py \
 
 # Or specify a checkpoint directly
 python scripts/02_evaluate_classifier.py \
-    --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras \
+    --model-path outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras \
     --config configs/efficientnetb0_baseline.yaml
 ```
 
@@ -181,12 +181,12 @@ Outputs: `outputs/evaluation/confusion_matrix.png`, `classification_report.csv`,
 
 ```bash
 python scripts/03_generate_gradcam.py \
-    --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras \
+    --model-path outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras \
     --config configs/gradcam.yaml
 
 # Limit to 20 samples per class
 python scripts/03_generate_gradcam.py \
-    --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras \
+    --model-path outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras \
     --num-samples 20
 ```
 
@@ -226,12 +226,12 @@ Outputs: `outputs/evaluation/segmentation/segmentation_grid.png`, `per_sample_me
 ```bash
 python scripts/07_export_model.py \
     --format onnx \
-    --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras
+    --model-path outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras
 
 # With validation and benchmarking
 python scripts/07_export_model.py \
     --format onnx \
-    --model-path outputs/models/checkpoints/efficientnetb0/v1/best.keras \
+    --model-path outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras \
     --validate --benchmark
 ```
 
@@ -301,6 +301,20 @@ then adds runs to the existing experiment instead of creating a duplicate.
 
 See the Vertex AI section above for setup instructions. Full onboarding
 documentation (GCP APIs, buckets, IAM, troubleshooting) is maintained internally.
+
+## Gradio Demo
+
+```bash
+# Launch with default model paths
+uv run demo/gradio_app.py
+
+# Custom model paths
+uv run demo/gradio_app.py \
+    --model-path outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras \
+    --seg-model-path outputs/models/checkpoints/unet_efficientnetb0_v2/v2/best.keras
+```
+
+Opens at http://localhost:7860. Upload a radiograph or select an example for classification, Grad-CAM localization, and segmentation overlay.
 
 ## API
 

@@ -45,3 +45,13 @@ class ModelInfoResponse(BaseModel):
     input_shape: list[int] = Field(description="Expected input shape [H, W, C]")
     num_classes: int = Field(description="Number of output classes")
     description: str = Field(description="Model description")
+
+
+class ErrorResponse(BaseModel):
+    detail: str = Field(description="Human-readable error description")
+    request_id: str | None = Field(default=None, description="Request ID for tracing")
+
+
+class ReadyResponse(BaseModel):
+    status: str = Field(description="Overall readiness status")
+    models: dict[str, str] = Field(description="Per-model load status")

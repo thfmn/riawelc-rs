@@ -16,7 +16,7 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
 from riawelc.api import dependencies
-from riawelc.api.schemas import HealthResponse
+from riawelc.api.schemas import HealthResponse, ReadyResponse
 
 router = APIRouter(tags=["health"])
 
@@ -29,15 +29,23 @@ async def health() -> HealthResponse:
     return HealthResponse(status="ok", version=API_VERSION)
 
 
-@router.get("/ready")
+@router.get("/ready", response_model=ReadyResponse)
 async def ready() -> JSONResponse:
-    """Readiness probe — checks whether the model is loaded."""
+    """Readiness probe — checks whether models are loaded."""
+    models: dict[str, str] = {
+        "classifier": "loaded" if dependencies._model_cache is not None else "not_loaded",
+        "seg_baseline": "loaded" if dependencies._seg_baseline_cache is not None else "not_loaded",
+        "seg_augmented": "loaded" if dependencies._seg_augmented_cache is not None else "not_loaded",
+    }
+
+    # Classifier is required; seg models are optional (200 with warning).
     if dependencies._model_cache is None:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={"status": "not_ready", "detail": "Model not loaded"},
+            content={"status": "not_ready", "models": models},
         )
+
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content={"status": "ready"},
+        content={"status": "ready", "models": models},
     )

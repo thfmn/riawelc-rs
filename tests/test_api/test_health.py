@@ -12,8 +12,12 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 from httpx import AsyncClient
+
+from riawelc.api import dependencies
 
 
 @pytest.mark.asyncio
@@ -31,3 +35,58 @@ async def test_health_response_schema(client: AsyncClient) -> None:
     data = response.json()
     assert isinstance(data["status"], str)
     assert isinstance(data["version"], str)
+
+
+@pytest.mark.asyncio
+async def test_ready_returns_503_when_classifier_not_loaded(client: AsyncClient) -> None:
+    """Without classifier model cached, /ready should return 503."""
+    original = dependencies._model_cache
+    dependencies._model_cache = None
+    try:
+        response = await client.get("/ready")
+    finally:
+        dependencies._model_cache = original
+    assert response.status_code == 503
+    data = response.json()
+    assert data["status"] == "not_ready"
+    assert "models" in data
+    assert data["models"]["classifier"] == "not_loaded"
+
+
+@pytest.mark.asyncio
+async def test_ready_returns_200_when_classifier_loaded(client: AsyncClient) -> None:
+    """With classifier model cached, /ready should return 200."""
+    original = dependencies._model_cache
+    dependencies._model_cache = MagicMock()
+    try:
+        response = await client.get("/ready")
+    finally:
+        dependencies._model_cache = original
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ready"
+    assert data["models"]["classifier"] == "loaded"
+
+
+@pytest.mark.asyncio
+async def test_ready_reports_per_model_status(client: AsyncClient) -> None:
+    """The /ready endpoint should report status for all three models."""
+    orig_cls = dependencies._model_cache
+    orig_base = dependencies._seg_baseline_cache
+    orig_aug = dependencies._seg_augmented_cache
+
+    dependencies._model_cache = MagicMock()
+    dependencies._seg_baseline_cache = MagicMock()
+    dependencies._seg_augmented_cache = None
+    try:
+        response = await client.get("/ready")
+    finally:
+        dependencies._model_cache = orig_cls
+        dependencies._seg_baseline_cache = orig_base
+        dependencies._seg_augmented_cache = orig_aug
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["models"]["classifier"] == "loaded"
+    assert data["models"]["seg_baseline"] == "loaded"
+    assert data["models"]["seg_augmented"] == "not_loaded"

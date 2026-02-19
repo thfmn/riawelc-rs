@@ -29,7 +29,7 @@ class Settings:
     model_path: str = field(
         default_factory=lambda: os.environ.get(
             "RIAWELC_MODEL_PATH",
-            "outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras",
+            "models/classifier_efficientnetb0_v1.keras",
         )
     )
     host: str = field(default_factory=lambda: os.environ.get("RIAWELC_HOST", "0.0.0.0"))
@@ -49,7 +49,7 @@ class Settings:
     seg_baseline_path: str = field(
         default_factory=lambda: os.environ.get(
             "RIAWELC_SEG_BASELINE_PATH",
-            "outputs/models/checkpoints/unet_efficientnetb0_v2/v2/best.keras",
+            "models/segmentation_unet_v2.keras",
         )
     )
     api_key: str = field(default_factory=lambda: os.environ.get("RIAWELC_API_KEY", ""))

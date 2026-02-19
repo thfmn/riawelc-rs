@@ -4,13 +4,12 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./outputs:/app/outputs:ro
+      - ./models:/app/models:ro
     env_file:
       - .env
     environment:
-      - RIAWELC_MODEL_PATH=/app/outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras
-      - RIAWELC_SEG_BASELINE_PATH=/app/outputs/models/checkpoints/unet_efficientnetb0/v1/best.keras
-      - RIAWELC_SEG_AUGMENTED_PATH=/app/outputs/models/checkpoints/unet_efficientnetb0_augmented/v1/best.keras
+      - RIAWELC_MODEL_PATH=/app/models/classifier_efficientnetb0_v1.keras
+      - RIAWELC_SEG_BASELINE_PATH=/app/models/segmentation_unet_v2.keras
     deploy:
       resources:
         limits:

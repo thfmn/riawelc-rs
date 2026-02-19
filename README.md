@@ -13,7 +13,7 @@ Classification and weakly-supervised segmentation of welding radiographs using t
 
 ## Dataset
 
-This project uses **RIAWELC-RS** (Radiograph-Split), a corrected version of the original [RIAWELC](https://github.com/stefyste/RIAWELC) dataset (University of Calabria, 2023). The original dataset contains 24,407 grayscale 227×227 radiographic images across 4 defect classes, extracted from 29 high-resolution industrial radiographs. RIAWELC-RS removes 2,443 exact duplicate images and re-splits at the radiograph level to eliminate data leakage, resulting in **21,964 unique images**.
+This project introduces **RIAWELC-RS** (Radiograph-Split), a corrected version of the original [RIAWELC](https://github.com/stefyste/RIAWELC) dataset (University of Calabria, 2023). The original dataset contains 24,407 grayscale 227×227 radiographic images across 4 defect classes, extracted from 29 high-resolution industrial radiographs. RIAWELC-RS removes 2,443 exact duplicate images and re-splits at the radiograph level to eliminate data leakage, resulting in **21,964 unique images**.
 
 ### RIAWELC vs RIAWELC-RS
 

@@ -30,6 +30,7 @@ env/
 
 # Dataset (large files — not tracked in git)
 Dataset_partitioned/
+Dataset_original/
 
 # Output artifacts
 outputs/
@@ -49,9 +50,11 @@ Thumbs.db
 # Docs
 docs/
 
-# Tauri build
+# Tauri build & generated
 demo/tauri-app/src-tauri/target/
+demo/tauri-app/src-tauri/gen/
 demo/tauri-app/node_modules/
+demo/tauri-app/.svelte-kit/
 
 # Coverage
 .coverage
@@ -66,6 +69,9 @@ vertex-scaffold/
 
 # Scratchfiles
 scratch/
+ralph-api.sh
+scripts/get_timestamp.py
+scripts/stream_filter_api.py
 
 # AI
 .claude

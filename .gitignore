@@ -66,6 +66,7 @@ htmlcov/
 
 # Cloud
 vertex-scaffold/
+deploy/cloudrun.sh
 
 # Scratchfiles
 scratch/

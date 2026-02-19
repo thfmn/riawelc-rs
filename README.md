@@ -130,10 +130,14 @@ Evaluated on the 3 defect classes only (`no_defect` excluded, since there is no 
 # 1. Install dependencies (requires uv: https://docs.astral.sh/uv/)
 uv sync --group all
 
-# 2. Verify setup
+# 2. Download and unzip the dataset from the GitHub Release
+wget https://github.com/thfmn/riawelc-rs/releases/download/v1.0.0/riawelc-rs-dataset.zip
+unzip riawelc-rs-dataset.zip
+
+# 3. Verify setup
 uv run pytest tests/ -q
 
-# 3. Dry-run to check model builds
+# 4. Dry-run to check model builds
 python scripts/01_train_classifier.py --model efficientnetb0 --config configs/efficientnetb0_baseline.yaml --dry-run
 ```
 

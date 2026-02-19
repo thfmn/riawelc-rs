@@ -16,8 +16,8 @@
 
 Usage:
     uv run demo/gradio_app.py
-    uv run demo/gradio_app.py --model-path outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras
-    uv run demo/gradio_app.py --seg-model-path outputs/models/checkpoints/unet_efficientnetb0_v2/v2/best.keras
+    uv run demo/gradio_app.py --model-path models/classifier_efficientnetb0_v1.keras
+    uv run demo/gradio_app.py --seg-model-path models/segmentation_unet_v2.keras
 """
 
 from __future__ import annotations
@@ -240,8 +240,8 @@ def create_interface() -> gr.Blocks:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Launch Gradio demo.")
-    parser.add_argument("--model-path", type=str, default="outputs/models/checkpoints/efficientnetb0/v1/fine_tune/best.keras", help="Path to classification model.")
-    parser.add_argument("--seg-model-path", type=str, default="outputs/models/checkpoints/unet_efficientnetb0_v2/v2/best.keras", help="Path to segmentation model.")
+    parser.add_argument("--model-path", type=str, default="models/classifier_efficientnetb0_v1.keras", help="Path to classification model.")
+    parser.add_argument("--seg-model-path", type=str, default="models/segmentation_unet_v2.keras", help="Path to segmentation model.")
     parser.add_argument("--port", type=int, default=7860)
     parser.add_argument("--share", action="store_true")
     return parser.parse_args()

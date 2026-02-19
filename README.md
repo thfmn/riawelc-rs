@@ -22,7 +22,6 @@ This project introduces **RIAWELC-RS** (Radiograph-Split), a corrected version o
 | Total images | 24,407 | 21,964 |
 | Duplicates | 2,443 across splits | Removed |
 | Split strategy | Random (patch-level) | Radiograph-level |
-| Data leakage | Yes | None |
 
 ### RIAWELC-RS Split
 
